@@ -4,7 +4,7 @@
  */
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, addDoc, getDocFromServer } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -16,6 +16,26 @@ export const googleProvider = new GoogleAuthProvider();
 export const loginWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error) {
+    console.error('Login error:', error);
+    throw error;
+  }
+};
+
+export const registerWithEmail = async (email: string, pass: string) => {
+  try {
+    const result = await createUserWithEmailAndPassword(auth, email, pass);
+    return result.user;
+  } catch (error) {
+    console.error('Registration error:', error);
+    throw error;
+  }
+};
+
+export const loginWithEmail = async (email: string, pass: string) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, pass);
     return result.user;
   } catch (error) {
     console.error('Login error:', error);

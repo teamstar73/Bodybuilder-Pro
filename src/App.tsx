@@ -16,7 +16,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import { Home, Utensils, Timer, BarChart2, Menu, Settings, User as UserIcon, X, Trash2, LogOut, ChevronRight, LogIn, Users } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth, loginWithGoogle, logout as firebaseLogout } from './firebase';
+import { auth, loginWithGoogle, logout as firebaseLogout, loginWithEmail, registerWithEmail } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
@@ -24,6 +24,12 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'log' | 'peaking' | 'progress' | 'friends' | 'profile' | 'settings'>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
@@ -45,6 +51,45 @@ export default function App() {
     }
   }, [userId, syncWithFirebase]);
 
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError(null);
+    setIsAuthLoading(true);
+    try {
+      if (authMode === 'login') {
+        await loginWithEmail(email, password);
+      } else {
+        await registerWithEmail(email, password);
+      }
+    } catch (error: any) {
+      let message = '認証に失敗しました。';
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'このメールアドレスは既に登録されています。';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'パスワードが短すぎます（6文字以上必要です）。';
+      } else if (error.code === 'auth/invalid-email') {
+        message = '無効なメールアドレスです。';
+      } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        message = 'メールアドレスまたはパスワードが正しくありません。';
+      }
+      setAuthError(message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setAuthError(null);
+    setIsAuthLoading(true);
+    try {
+      await loginWithGoogle();
+    } catch (error: any) {
+      setAuthError('Googleログインに失敗しました。');
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -61,14 +106,78 @@ export default function App() {
           <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">The Ultimate Physique Management System</p>
         </div>
         
-        <div className="w-full max-w-sm space-y-4">
+        <div className="w-full max-w-sm space-y-6">
+          <form onSubmit={handleEmailAuth} className="space-y-4 text-left">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Email</label>
+              <input 
+                type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 text-sm focus:border-amber-500 outline-none transition-all"
+                placeholder="email@example.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Password</label>
+              <input 
+                type="password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 text-sm focus:border-amber-500 outline-none transition-all"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            
+            {authError && (
+              <div className="text-rose-500 text-[10px] font-bold uppercase tracking-widest bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
+                {authError}
+              </div>
+            )}
+
+            <button 
+              type="submit"
+              disabled={isAuthLoading}
+              className="w-full h-14 bg-amber-500 text-black rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+            >
+              {isAuthLoading ? (
+                <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto" />
+              ) : (
+                authMode === 'login' ? 'ログイン' : '新規登録'
+              )}
+            </button>
+          </form>
+
+          <div className="flex items-center gap-4 py-2">
+            <div className="h-px flex-1 bg-zinc-800" />
+            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">OR</span>
+            <div className="h-px flex-1 bg-zinc-800" />
+          </div>
+
           <button 
-            onClick={loginWithGoogle}
-            className="w-full h-16 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-zinc-200 transition-colors"
+            onClick={handleGoogleLogin}
+            disabled={isAuthLoading}
+            className="w-full h-14 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-zinc-200 transition-colors disabled:opacity-50"
           >
-            <LogIn size={24} />
-            GOOGLEでログイン
+            {isAuthLoading ? (
+              <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <LogIn size={20} />
+                GOOGLEでログイン
+              </>
+            )}
           </button>
+
+          <button 
+            onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+            className="text-[10px] font-black text-amber-500 uppercase tracking-widest hover:text-amber-400 transition-colors"
+          >
+            {authMode === 'login' ? 'アカウントをお持ちでない方はこちら' : 'すでにアカウントをお持ちの方はこちら'}
+          </button>
+
           <p className="text-[10px] text-zinc-600 uppercase tracking-widest leading-relaxed">
             ログインすることで、すべてのデータがクラウドに保存され、複数のデバイスで同期されます。
           </p>
