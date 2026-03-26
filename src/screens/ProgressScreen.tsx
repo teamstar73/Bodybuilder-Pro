@@ -3,23 +3,83 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Scale, Droplets, Dumbbell, TrendingDown, TrendingUp, Camera, Plus } from 'lucide-react';
+import { Scale, Droplets, Dumbbell, TrendingDown, TrendingUp, Camera, Plus, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function ProgressScreen() {
-  const { user, measurements } = useAppStore();
+  const { user, measurements, addMeasurement, visualLog, addVisualLogEntry, get30DayAvgCalories, getTodayMacros } = useAppStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'measurement' | 'visual'>('measurement');
+  const [newWeight, setNewWeight] = useState(user?.weight_kg?.toString() || '');
+  const [newBodyFat, setNewBodyFat] = useState(user?.body_fat_pct?.toString() || '');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Mock data for charts
-  const weightData = [
-    { date: 'Oct 15', weight: 93.5 },
-    { date: 'Oct 22', weight: 93.8 },
-    { date: 'Oct 29', weight: 94.2 },
-    { date: 'Nov 05', weight: 94.5 },
-    { date: 'Today', weight: 94.2 },
+  // Process measurements for charts
+  const weightData = measurements
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .map(m => ({
+      date: new Date(m.date).toLocaleDateString('ja-JP', { month: 'short', day: 'numeric' }),
+      weight: m.weight_kg,
+      bodyFat: m.body_fat_pct
+    }));
+
+  // Fallback if no measurements
+  const displayData = weightData.length > 0 ? weightData : [
+    { date: 'No Data', weight: user?.weight_kg || 0, bodyFat: user?.body_fat_pct || 0 }
   ];
+
+  // Calculate FFMI
+  const calculateFFMI = () => {
+    if (!user?.weight_kg || !user?.height_cm) return 0;
+    const heightM = user.height_cm / 100;
+    const bf = user.body_fat_pct || 15; // Default to 15% if unknown
+    const lbm = user.weight_kg * (1 - bf / 100);
+    const ffmi = lbm / (heightM * heightM);
+    return Math.round(ffmi * 10) / 10;
+  };
+
+  const handleAddMeasurement = async () => {
+    if (!newWeight) return;
+    setIsSaving(true);
+    try {
+      await addMeasurement({
+        date: new Date().toISOString().split('T')[0],
+        weight_kg: parseFloat(newWeight),
+        body_fat_pct: newBodyFat ? parseFloat(newBodyFat) : undefined,
+        ffmi: calculateFFMI()
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error adding measurement:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddVisualEntry = async () => {
+    setIsSaving(true);
+    try {
+      // Simulate image upload with a random placeholder
+      const randomId = Math.floor(Math.random() * 1000);
+      await addVisualLogEntry({
+        date: new Date().toISOString().split('T')[0],
+        image_url: `https://picsum.photos/seed/progress${randomId}/600/800`,
+        label: 'Progress Update'
+      });
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error adding visual log:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const avgCalories = get30DayAvgCalories();
+  const todayMacros = getTodayMacros();
 
   return (
     <div className="space-y-6 pb-24">
@@ -32,7 +92,7 @@ export default function ProgressScreen() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
         <MetricCard label="体重 / WEIGHT" value={user?.weight_kg || 0} unit="KG" icon={<Scale size={14}/>} delta="-0.8 kg" deltaType="down" period="THIS WEEK" />
         <MetricCard label="体脂肪% / BODY FAT" value={user?.body_fat_pct || 0} unit="%" icon={<Droplets size={14}/>} delta="-0.2 %" deltaType="down" period="SINCE OCT 01" />
-        <MetricCard label="FFMI / LEAN MASS" value={24.1} unit="INDEX" icon={<Dumbbell size={14}/>} delta="+0.15" deltaType="up" period="LBM ACCRETION" />
+        <MetricCard label="FFMI / LEAN MASS" value={calculateFFMI()} unit="INDEX" icon={<Dumbbell size={14}/>} delta="+0.15" deltaType="up" period="LBM ACCRETION" />
       </div>
 
       {/* Weight Chart */}
@@ -43,13 +103,12 @@ export default function ProgressScreen() {
             <h3 className="text-[10px] font-black uppercase tracking-widest">Weight Log Analysis</h3>
           </div>
           <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg">
-            <button className="px-3 py-1 text-[10px] font-bold bg-amber-500 text-black rounded transition-all">30D</button>
-            <button className="px-3 py-1 text-[10px] font-bold text-zinc-500 hover:text-white transition-all">90D</button>
+            <button className="px-3 py-1 text-[10px] font-bold bg-amber-500 text-black rounded transition-all">ALL</button>
           </div>
         </div>
         <div className="p-6 h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={weightData}>
+            <LineChart data={displayData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
               <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#525252' }} />
               <YAxis domain={['dataMin - 1', 'dataMax + 1']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#525252' }} />
@@ -70,11 +129,11 @@ export default function ProgressScreen() {
             <div className="w-1 h-4 bg-teal-500" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Composition Variance</h3>
           </div>
-          <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Target: 7.5%</span>
+          <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Target: {user?.goal_weight_kg || 0}kg</span>
         </div>
         <div className="p-6 h-40">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={weightData}>
+            <AreaChart data={displayData}>
               <defs>
                 <linearGradient id="colorComp" x1="0" y1="0" x2="0" y2="100%">
                   <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.3}/>
@@ -91,36 +150,43 @@ export default function ProgressScreen() {
       <section className="space-y-4">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-xs font-black uppercase tracking-widest">Visual Log</h3>
-          <button className="flex items-center gap-1 text-amber-500 text-[10px] font-bold uppercase tracking-widest hover:underline">
-            <Camera size={14} /> Add Entry
-          </button>
+          <div className="flex gap-3">
+            <button 
+              onClick={() => { setModalType('measurement'); setIsModalOpen(true); }}
+              className="flex items-center gap-1 text-amber-500 text-[10px] font-bold uppercase tracking-widest hover:underline"
+            >
+              <Plus size={14} /> Weight
+            </button>
+            <button 
+              onClick={() => { setModalType('visual'); setIsModalOpen(true); }}
+              className="flex items-center gap-1 text-amber-500 text-[10px] font-bold uppercase tracking-widest hover:underline"
+            >
+              <Camera size={14} /> Photo
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <div className="aspect-[3/4] rounded-xl bg-zinc-900 border border-zinc-800 relative overflow-hidden group">
-            <img 
-              src="https://picsum.photos/seed/bodybuilder1/600/800" 
-              alt="Baseline" 
-              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
-              <div className="text-[10px] font-black uppercase text-zinc-400">Baselines</div>
-              <div className="text-sm font-bold">SEPT 12, 2023</div>
+          {visualLog.length === 0 ? (
+            <div className="col-span-2 py-12 text-center bg-zinc-900 border border-zinc-800 rounded-2xl">
+              <Camera className="mx-auto text-zinc-700 mb-2" size={32} />
+              <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">No photos logged yet</p>
             </div>
-          </div>
-          <div className="aspect-[3/4] rounded-xl bg-zinc-900 border border-amber-500/30 relative overflow-hidden group">
-            <img 
-              src="https://picsum.photos/seed/bodybuilder2/600/800" 
-              alt="Current" 
-              className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute top-3 right-3 bg-amber-500 text-black text-[9px] font-black px-2 py-1 rounded uppercase">Current</div>
-            <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent border-b-2 border-amber-500">
-              <div className="text-[10px] font-black uppercase text-amber-500">Latest Update</div>
-              <div className="text-sm font-bold">TODAY, NOV 14</div>
-            </div>
-          </div>
+          ) : (
+            visualLog.slice(-4).map((entry, i) => (
+              <div key={entry.id} className="aspect-[3/4] rounded-xl bg-zinc-900 border border-zinc-800 relative overflow-hidden group">
+                <img 
+                  src={entry.image_url} 
+                  alt={entry.label} 
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
+                  <div className="text-[10px] font-black uppercase text-zinc-400">{entry.label}</div>
+                  <div className="text-sm font-bold">{new Date(entry.date).toLocaleDateString('ja-JP')}</div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -130,20 +196,99 @@ export default function ProgressScreen() {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-xs font-medium text-zinc-400">Avg. Daily Intake</span>
-            <span className="text-sm font-bold text-teal-500">3,142 kcal</span>
+            <span className="text-sm font-bold text-teal-500">{Math.round(avgCalories).toLocaleString()} kcal</span>
           </div>
           <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden flex gap-0.5">
-            <div className="h-full bg-amber-500" style={{ width: '65%' }} />
-            <div className="h-full bg-teal-500" style={{ width: '25%' }} />
-            <div className="h-full bg-rose-500" style={{ width: '10%' }} />
+            <div className="h-full bg-amber-500" style={{ width: `${(todayMacros.protein * 4 / (todayMacros.calories || 1)) * 100}%` }} />
+            <div className="h-full bg-teal-500" style={{ width: `${(todayMacros.carbs * 4 / (todayMacros.calories || 1)) * 100}%` }} />
+            <div className="h-full bg-rose-500" style={{ width: `${(todayMacros.fat * 9 / (todayMacros.calories || 1)) * 100}%` }} />
           </div>
           <div className="flex justify-between text-[10px] font-bold uppercase text-zinc-600">
-            <span>PRO: 250G</span>
-            <span>CHO: 380G</span>
-            <span>FAT: 65G</span>
+            <span>PRO: {todayMacros.protein}G</span>
+            <span>CHO: {todayMacros.carbs}G</span>
+            <span>FAT: {todayMacros.fat}G</span>
           </div>
         </div>
       </section>
+
+      {/* Add Entry Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-black uppercase tracking-tight">
+                  {modalType === 'measurement' ? '体重を記録' : '写真を記録'}
+                </h3>
+                <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {modalType === 'measurement' ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
+                    <input 
+                      type="number" 
+                      step="0.1"
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white outline-none focus:border-amber-500"
+                      value={newWeight}
+                      onChange={(e) => setNewWeight(e.target.value)}
+                      placeholder="85.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪率 (任意 %)</label>
+                    <input 
+                      type="number" 
+                      step="0.1"
+                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white outline-none focus:border-amber-500"
+                      value={newBodyFat}
+                      onChange={(e) => setNewBodyFat(e.target.value)}
+                      placeholder="12.0"
+                    />
+                  </div>
+                  <button 
+                    onClick={handleAddMeasurement}
+                    disabled={isSaving || !newWeight}
+                    className="w-full bg-amber-500 text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
+                  >
+                    {isSaving ? '保存中...' : '保存する'}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="aspect-[3/4] rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
+                    <Camera size={48} className="mb-2" />
+                    <p className="text-[10px] font-bold uppercase tracking-widest">Tap to Upload</p>
+                  </div>
+                  <p className="text-[10px] text-zinc-500 text-center">※デモ版ではランダムな画像が保存されます</p>
+                  <button 
+                    onClick={handleAddVisualEntry}
+                    disabled={isSaving}
+                    className="w-full bg-amber-500 text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
+                  >
+                    {isSaving ? '保存中...' : '写真を保存'}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

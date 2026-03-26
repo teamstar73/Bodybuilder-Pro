@@ -9,7 +9,7 @@ import { Trophy, Droplets, Utensils, FlaskConical, CheckCircle2, Circle, Edit3, 
 import { cn } from '../lib/utils';
 
 export default function PeakingScreen() {
-  const { user, peakingProtocol, markDayComplete, getDaysToCompetition } = useAppStore();
+  const { user, updateUser, peakingProtocol, markDayComplete, getDaysToCompetition } = useAppStore();
   const daysToComp = getDaysToCompetition();
 
   if (!user?.competition_date) {
@@ -20,11 +20,16 @@ export default function PeakingScreen() {
         </div>
         <div className="space-y-2">
           <h2 className="text-xl font-black uppercase tracking-tight">大会日程が未設定です</h2>
-          <p className="text-zinc-500 text-sm max-w-xs">プロフィールから大会日を設定して、ピーキングプロトコルを開始しましょう。</p>
+          <p className="text-zinc-500 text-sm max-w-xs">大会日を設定して、ピーキングプロトコルを開始しましょう。</p>
         </div>
-        <button className="bg-amber-500 text-black font-black px-8 py-4 rounded-xl active:scale-95 transition-all">
-          日程を設定する
-        </button>
+        <div className="w-full max-w-xs space-y-4">
+          <input 
+            type="date" 
+            className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white outline-none focus:border-amber-500"
+            onChange={(e) => updateUser({ competition_date: e.target.value })}
+          />
+          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">日付を選択するとプロトコルが生成されます</p>
+        </div>
       </div>
     );
   }

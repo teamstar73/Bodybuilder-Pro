@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, FoodEntry, Measurement, Supplement, PeakDay, MacroTarget } from '../types';
+import { User, FoodEntry, Measurement, Supplement, PeakDay, MacroTarget, VisualLogEntry } from '../types';
 import { calculateTDEE, calculateTargetMacros, generatePeakingProtocol, getPersonalizedRecommendations } from '../utils/nutrition';
 import { db, auth } from '../firebase';
 import { doc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, where, getDocFromServer } from 'firebase/firestore';
@@ -70,14 +70,20 @@ interface AppStore {
   
   foodLog: FoodEntry[];
   addFoodEntry: (entry: Omit<FoodEntry, 'id'>) => Promise<void>;
-  removeFoodEntry: (id: number) => Promise<void>;
+  removeFoodEntry: (id: string | number) => Promise<void>;
   
   measurements: Measurement[];
   addMeasurement: (m: Omit<Measurement, 'id'>) => Promise<void>;
   
+  visualLog: VisualLogEntry[];
+  addVisualLogEntry: (entry: Omit<VisualLogEntry, 'id'>) => Promise<void>;
+  
+  waterIntake: number;
+  addWater: (amount: number) => Promise<void>;
+  
   supplements: Supplement[];
   setSupplements: (s: Supplement[]) => Promise<void>;
-  toggleSupplementTaken: (id: number, date: string) => Promise<void>;
+  toggleSupplementTaken: (id: string | number, date: string) => Promise<void>;
   
   peakingProtocol: PeakDay[];
   setPeakingProtocol: (p: PeakDay[]) => void;
@@ -89,6 +95,7 @@ interface AppStore {
   getTDEE: () => number;
   getTargetMacros: () => MacroTarget;
   getDaysToCompetition: () => number | null;
+  get30DayAvgCalories: () => number;
   resetData: () => void;
   
   // Firebase Sync
@@ -116,32 +123,31 @@ export const useAppStore = create<AppStore>()(
         if (userId) {
           try {
             await setDoc(doc(db, 'users', userId), user);
+            
+            // Initialize supplements based on recommendations
+            const recs = getPersonalizedRecommendations(user);
+            const initialSupps: Supplement[] = recs.supplements.map((name, i) => ({
+              id: (i + 1).toString(),
+              name,
+              dose_g: 0,
+              timing: 'Daily',
+              frequency: '1x',
+              evidence_level: 'A',
+              stock_days_remaining: 30,
+              is_active: true,
+              taken_dates: []
+            }));
+            
+            // Save initial supplements to Firestore
+            for (const s of initialSupps) {
+              await setDoc(doc(db, 'users', userId, 'supplements', s.id.toString()), s);
+            }
+            set({ supplements: initialSupps });
           } catch (error) {
             handleFirestoreError(error, OperationType.WRITE, `users/${userId}`);
           }
         }
         set({ user });
-        
-        // Initialize supplements based on recommendations
-        const recs = getPersonalizedRecommendations(user);
-        const initialSupps: Supplement[] = recs.supplements.map((name, i) => ({
-          id: i + 1,
-          name,
-          dose_g: 0, // Placeholder
-          timing: 'Daily',
-          frequency: '1x',
-          evidence_level: 'A',
-          stock_days_remaining: 30,
-          is_active: true,
-          taken_dates: []
-        }));
-        
-        if (userId) {
-          // In a real app, we'd save these to subcollections
-          // For simplicity in this demo, we'll just set the state
-          // and let the sync handle it if they were already there
-        }
-        set({ supplements: initialSupps });
 
         if (user.competition_date) {
           const protocol = generatePeakingProtocol(user.competition_date, user.weight_kg);
@@ -203,6 +209,30 @@ export const useAppStore = create<AppStore>()(
         }
       },
       
+      visualLog: [],
+      addVisualLogEntry: async (entry) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await addDoc(collection(db, 'users', userId, 'visualLog'), entry);
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, `users/${userId}/visualLog`);
+        }
+      },
+      
+      waterIntake: 0,
+      addWater: async (amount) => {
+        const userId = get().userId;
+        if (!userId) return;
+        const newTotal = get().waterIntake + amount;
+        try {
+          await setDoc(doc(db, 'users', userId), { water_intake: newTotal }, { merge: true });
+          set({ waterIntake: newTotal });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+        }
+      },
+      
       supplements: [],
       setSupplements: async (supplements) => {
         set({ supplements });
@@ -211,7 +241,7 @@ export const useAppStore = create<AppStore>()(
         const userId = get().userId;
         if (!userId) return;
         
-        const s = get().supplements.find(s => s.id === id);
+        const s = get().supplements.find(s => s.id.toString() === id.toString());
         if (!s) return;
         
         const taken = s.taken_dates.includes(date);
@@ -219,8 +249,6 @@ export const useAppStore = create<AppStore>()(
           ? s.taken_dates.filter(d => d !== date)
           : [...s.taken_dates, date];
           
-        // Update Firestore
-        // Note: Supplement ID handling needs to be consistent
         try {
           await setDoc(doc(db, 'users', userId, 'supplements', id.toString()), {
             taken_dates: newTakenDates
@@ -233,8 +261,8 @@ export const useAppStore = create<AppStore>()(
       syncWithFirebase: (userId) => {
         const unsubUser = onSnapshot(doc(db, 'users', userId), (doc) => {
           if (doc.exists()) {
-            const userData = doc.data() as User;
-            set({ user: userData });
+            const userData = doc.data() as any;
+            set({ user: userData, waterIntake: userData.water_intake || 0 });
             if (userData.competition_date) {
               const protocol = generatePeakingProtocol(userData.competition_date, userData.weight_kg);
               set({ peakingProtocol: protocol });
@@ -257,11 +285,17 @@ export const useAppStore = create<AppStore>()(
           set({ supplements });
         });
 
+        const unsubVisualLog = onSnapshot(collection(db, 'users', userId, 'visualLog'), (snapshot) => {
+          const visualLog = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
+          set({ visualLog });
+        });
+
         return () => {
           unsubUser();
           unsubFood();
           unsubMeasurements();
           unsubSupplements();
+          unsubVisualLog();
         };
       },
       
@@ -305,6 +339,23 @@ export const useAppStore = create<AppStore>()(
         const today = new Date();
         const diffTime = comp.getTime() - today.getTime();
         return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      },
+      get30DayAvgCalories: () => {
+        const { foodLog } = get();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const recentLogs = foodLog.filter(e => new Date(e.date) >= thirtyDaysAgo);
+        if (recentLogs.length === 0) return 0;
+        
+        // Group by date to find daily totals
+        const dailyTotals: Record<string, number> = {};
+        recentLogs.forEach(e => {
+          dailyTotals[e.date] = (dailyTotals[e.date] || 0) + e.calories;
+        });
+        
+        const totals = Object.values(dailyTotals);
+        return totals.reduce((a, b) => a + b, 0) / totals.length;
       }
     }),
     {

@@ -26,7 +26,7 @@ export interface User {
 }
 
 export interface FoodEntry {
-  id: number;
+  id: string | number;
   date: string;
   meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
   food_name: string;
@@ -38,7 +38,7 @@ export interface FoodEntry {
 }
 
 export interface Measurement {
-  id: number;
+  id: string | number;
   date: string;
   weight_kg: number;
   body_fat_pct?: number;
@@ -48,7 +48,7 @@ export interface Measurement {
 }
 
 export interface Supplement {
-  id: number;
+  id: string | number;
   name: string;
   dose_g: number;
   timing: string;
@@ -74,4 +74,12 @@ export interface MacroTarget {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+}
+
+export interface VisualLogEntry {
+  id: string | number;
+  date: string;
+  image_url: string;
+  label?: string;
+  notes?: string;
 }

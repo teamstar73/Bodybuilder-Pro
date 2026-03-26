@@ -90,7 +90,7 @@ export default function App() {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'home': return <DashboardScreen />;
+      case 'home': return <DashboardScreen onNavigate={navigateTo} />;
       case 'log': return <FoodLogScreen />;
       case 'peaking': return <PeakingScreen />;
       case 'progress': return <ProgressScreen />;

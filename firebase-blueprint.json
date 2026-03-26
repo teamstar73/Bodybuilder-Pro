@@ -18,7 +18,8 @@
         "goal_weight_kg": { "type": "number" },
         "allergies": { "type": "array", "items": { "type": "string" } },
         "competition_date": { "type": "string", "format": "date" },
-        "fasting_window": { "type": "string" }
+        "fasting_window": { "type": "string" },
+        "water_intake": { "type": "number" }
       },
       "required": ["name", "sex", "age", "height_cm", "weight_kg", "activity_factor", "phase", "diet_type", "training_experience"]
     },
@@ -67,6 +68,18 @@
         "taken_dates": { "type": "array", "items": { "type": "string", "format": "date" } }
       },
       "required": ["name", "dose_g", "timing", "frequency", "evidence_level", "stock_days_remaining", "is_active", "taken_dates"]
+    },
+    "VisualLog": {
+      "title": "Visual Log",
+      "description": "Progress photos and visual updates",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "image_url": { "type": "string" },
+        "label": { "type": "string" },
+        "notes": { "type": "string" }
+      },
+      "required": ["date", "image_url"]
     }
   },
   "firestore": {
@@ -85,6 +98,10 @@
     "/users/{userId}/supplements/{supplementId}": {
       "schema": "Supplement",
       "description": "Supplements and intake history"
+    },
+    "/users/{userId}/visualLog/{logId}": {
+      "schema": "VisualLog",
+      "description": "Progress photos"
     }
   }
 }

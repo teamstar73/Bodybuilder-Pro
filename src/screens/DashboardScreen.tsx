@@ -3,15 +3,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { Droplets, Pill, Scale, Plus, ChevronRight, TrendingDown, TrendingUp, Sparkles, Utensils, Lightbulb } from 'lucide-react';
+import { Droplets, Pill, Scale, Plus, ChevronRight, TrendingDown, TrendingUp, Sparkles, Utensils, Lightbulb, X, Check } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getPersonalizedRecommendations } from '../utils/nutrition';
+import { motion, AnimatePresence } from 'motion/react';
 
-export default function DashboardScreen() {
-  const { user, getTodayMacros, getTargetMacros, getTodayLog, toggleSupplementTaken, supplements } = useAppStore();
+export default function DashboardScreen({ onNavigate }: { onNavigate?: (tab: 'home' | 'log' | 'peaking' | 'progress' | 'profile' | 'settings') => void }) {
+  const { user, getTodayMacros, getTargetMacros, getTodayLog, toggleSupplementTaken, supplements, addMeasurement, updateUser, measurements, waterIntake, addWater } = useAppStore();
+  const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
+  const [newWeight, setNewWeight] = useState(user?.weight_kg?.toString() || '');
+  const [isSavingWeight, setIsSavingWeight] = useState(false);
+
   const todayMacros = getTodayMacros();
   const targetMacros = getTargetMacros();
   
@@ -24,6 +29,33 @@ export default function DashboardScreen() {
   ];
 
   const todayStr = new Date().toISOString().split('T')[0];
+
+  // Process measurements for sparkline
+  const sortedMeasurements = [...measurements].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const weightHistory = sortedMeasurements.slice(-14).map(m => m.weight_kg);
+  
+  // Calculate delta
+  const lastWeekWeight = sortedMeasurements.length > 7 ? sortedMeasurements[sortedMeasurements.length - 8].weight_kg : user?.weight_kg;
+  const weightDelta = user?.weight_kg && lastWeekWeight ? user.weight_kg - lastWeekWeight : 0;
+
+  const handleSaveWeight = async () => {
+    if (!newWeight || isNaN(parseFloat(newWeight))) return;
+    setIsSavingWeight(true);
+    try {
+      const weight = parseFloat(newWeight);
+      await addMeasurement({
+        date: todayStr,
+        weight_kg: weight,
+        ffmi: 0,
+      });
+      await updateUser({ weight_kg: weight });
+      setIsWeightModalOpen(false);
+    } catch (error) {
+      console.error('Error saving weight:', error);
+    } finally {
+      setIsSavingWeight(false);
+    }
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -75,14 +107,16 @@ export default function DashboardScreen() {
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Hydration</span>
-            <Droplets size={16} className="text-teal-500" />
+            <button onClick={() => addWater(0.5)} className="text-teal-500 hover:scale-110 transition-transform">
+              <Plus size={16} />
+            </button>
           </div>
           <div className="flex flex-wrap gap-2">
             {[1,2,3,4,5,6,7,8].map(i => (
-              <div key={i} className={cn("w-6 h-8 rounded-full border-2 flex items-center justify-center", i <= 4 ? "border-teal-500 bg-teal-500/20" : "border-zinc-800")} />
+              <div key={i} className={cn("w-6 h-8 rounded-full border-2 flex items-center justify-center", i <= (waterIntake / 0.5) ? "border-teal-500 bg-teal-500/20" : "border-zinc-800")} />
             ))}
           </div>
-          <div className="text-xs font-bold text-teal-500">2.0 / 4.0L</div>
+          <div className="text-xs font-bold text-teal-500">{waterIntake.toFixed(1)} / 4.0L</div>
         </div>
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
@@ -114,19 +148,32 @@ export default function DashboardScreen() {
         <div className="flex justify-between items-start mb-4">
           <div>
             <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Current Weight</div>
-            <div className="text-3xl font-black">{user?.weight_kg} <span className="text-sm font-normal text-zinc-500">KG</span></div>
+            <div className="text-3xl font-black">{user?.weight_kg || '--'} <span className="text-sm font-normal text-zinc-500">KG</span></div>
           </div>
           <div className="text-right">
-            <div className="text-rose-500 text-xs font-bold flex items-center justify-end gap-1">
-              <TrendingDown size={14} /> -0.4 KG
+            <div className={cn("text-xs font-bold flex items-center justify-end gap-1", weightDelta <= 0 ? "text-teal-500" : "text-rose-500")}>
+              {weightDelta <= 0 ? <TrendingDown size={14} /> : <TrendingUp size={14} />}
+              {Math.abs(weightDelta).toFixed(1)} KG
             </div>
             <div className="text-[10px] text-zinc-500 uppercase tracking-widest">Vs Last Week</div>
           </div>
         </div>
         <div className="h-16 flex items-end gap-1">
-          {[40, 45, 42, 48, 50, 47, 44, 46, 43, 41, 38, 35, 32, 30].map((h, i) => (
-            <div key={i} className={cn("flex-1 rounded-t-sm", i === 13 ? "bg-amber-500" : "bg-zinc-800")} style={{ height: `${h}%` }} />
-          ))}
+          {weightHistory.length > 0 ? (
+            weightHistory.map((w, i) => {
+              const max = Math.max(...weightHistory);
+              const min = Math.min(...weightHistory);
+              const range = max - min || 1;
+              const height = ((w - min) / range) * 60 + 20; // Scale between 20% and 80%
+              return (
+                <div key={i} className={cn("flex-1 rounded-t-sm", i === weightHistory.length - 1 ? "bg-amber-500" : "bg-zinc-800")} style={{ height: `${height}%` }} />
+              );
+            })
+          ) : (
+            [40, 45, 42, 48, 50, 47, 44, 46, 43, 41, 38, 35, 32, 30].map((h, i) => (
+              <div key={i} className="flex-1 rounded-t-sm bg-zinc-800" style={{ height: `${h}%` }} />
+            ))
+          )}
         </div>
       </div>
 
@@ -175,13 +222,76 @@ export default function DashboardScreen() {
 
       {/* Quick Actions */}
       <div className="flex gap-3">
-        <button className="flex-1 bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+        <button 
+          onClick={() => onNavigate?.('log')}
+          className="flex-1 bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all"
+        >
           <Plus size={20} /> 食事を記録
         </button>
-        <button className="flex-1 bg-zinc-900 border border-zinc-800 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+        <button 
+          onClick={() => setIsWeightModalOpen(true)}
+          className="flex-1 bg-zinc-900 border border-zinc-800 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all"
+        >
           <Scale size={20} /> 体重を入力
         </button>
       </div>
+
+      {/* Weight Modal */}
+      <AnimatePresence>
+        {isWeightModalOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsWeightModalOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="fixed inset-x-4 top-[20%] bg-zinc-950 border border-zinc-800 rounded-3xl p-6 z-[70] shadow-2xl max-w-sm mx-auto"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-black uppercase tracking-tight">体重を入力</h2>
+                <button onClick={() => setIsWeightModalOpen(false)} className="text-zinc-500 hover:text-white">
+                  <X size={24} />
+                </button>
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
+                  <input 
+                    type="number" 
+                    step="0.1"
+                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white text-2xl font-black outline-none focus:border-amber-500"
+                    placeholder="85.5"
+                    value={newWeight}
+                    onChange={(e) => setNewWeight(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+                
+                <button 
+                  onClick={handleSaveWeight}
+                  disabled={isSavingWeight || !newWeight}
+                  className="w-full bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all"
+                >
+                  {isSavingWeight ? (
+                    <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Check size={20} /> 保存する
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

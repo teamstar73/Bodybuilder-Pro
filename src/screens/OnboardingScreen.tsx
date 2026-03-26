@@ -28,27 +28,56 @@ export default function OnboardingScreen() {
   const [isSaving, setIsSaving] = useState(false);
   const totalSteps = 13;
 
-  const handleNext = async () => {
+  const handleNext = async (overrideValue?: any) => {
+    console.log(`handleNext called at step ${step}`, { formData, overrideValue });
+    
     // Basic validation
     if (step === 1 && !formData.name) return;
     if (step === 2) {
       if (!formData.sex || !formData.diet_type || !formData.training_experience) return;
     }
-    if (step === 3 && !formData.age) return;
-    if (step === 4 && !formData.height_cm) return;
-    if (step === 5 && !formData.weight_kg) return;
-    if (step === 9 && !formData.goal_weight_kg) return;
+    
+    const age = step === 3 ? (overrideValue ?? formData.age) : formData.age;
+    if (step === 3 && !age) return;
+    
+    const height = step === 4 ? (overrideValue ?? formData.height_cm) : formData.height_cm;
+    if (step === 4 && !height) return;
+    
+    const weight = step === 5 ? (overrideValue ?? formData.weight_kg) : formData.weight_kg;
+    if (step === 5 && !weight) return;
+    
+    const activity = step === 7 ? (overrideValue ?? formData.activity_factor) : formData.activity_factor;
+    if (step === 7 && !activity) return;
+    
+    const phase = step === 8 ? (overrideValue ?? formData.phase) : formData.phase;
+    if (step === 8 && !phase) return;
+    
+    const goalWeight = step === 9 ? (overrideValue ?? formData.goal_weight_kg) : formData.goal_weight_kg;
+    if (step === 9 && !goalWeight) return;
 
     let nextStep = step + 1;
     if (nextStep === 10 && formData.diet_type !== 'fasting') {
       nextStep = 11;
     }
 
-    if (step < totalSteps) setStep(nextStep);
-    else {
+    if (step < totalSteps) {
+      console.log(`Moving to step ${nextStep}`);
+      setStep(nextStep);
+      window.scrollTo(0, 0);
+    } else {
       setIsSaving(true);
       try {
-        await setUser(formData as User);
+        const finalData: User = {
+          ...formData,
+          age: formData.age || 0,
+          height_cm: formData.height_cm || 0,
+          weight_kg: formData.weight_kg || 0,
+          activity_factor: formData.activity_factor || 1.2,
+          goal_weight_kg: formData.goal_weight_kg || formData.weight_kg || 0,
+        } as User;
+        
+        console.log('Finalizing onboarding with data:', finalData);
+        await setUser(finalData);
       } catch (error) {
         console.error('Error saving profile:', error);
         alert('プロフィールの保存に失敗しました。');
@@ -67,6 +96,7 @@ export default function OnboardingScreen() {
   };
 
   const updateField = (field: keyof User, value: any) => {
+    console.log(`Updating ${field} to:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -181,10 +211,14 @@ export default function OnboardingScreen() {
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">年齢</label>
               <input 
                 type="number" 
+                inputMode="numeric"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
                 placeholder="25"
-                value={formData.age || ''}
-                onChange={(e) => updateField('age', parseInt(e.target.value))}
+                value={formData.age === undefined || isNaN(formData.age as number) ? '' : formData.age}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField('age', val === '' ? undefined : parseInt(val));
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
@@ -199,10 +233,14 @@ export default function OnboardingScreen() {
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">身長 (CM)</label>
               <input 
                 type="number" 
+                inputMode="numeric"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
                 placeholder="180"
-                value={formData.height_cm || ''}
-                onChange={(e) => updateField('height_cm', parseInt(e.target.value))}
+                value={formData.height_cm === undefined || isNaN(formData.height_cm as number) ? '' : formData.height_cm}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField('height_cm', val === '' ? undefined : parseInt(val));
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
@@ -217,11 +255,15 @@ export default function OnboardingScreen() {
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
               <input 
                 type="number" 
+                inputMode="decimal"
                 step="0.1"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
                 placeholder="85.5"
-                value={formData.weight_kg || ''}
-                onChange={(e) => updateField('weight_kg', parseFloat(e.target.value))}
+                value={formData.weight_kg === undefined || isNaN(formData.weight_kg as number) ? '' : formData.weight_kg}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField('weight_kg', val === '' ? undefined : parseFloat(val));
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
@@ -236,10 +278,14 @@ export default function OnboardingScreen() {
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪 %</label>
               <input 
                 type="number" 
+                inputMode="numeric"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
                 placeholder="12"
-                value={formData.body_fat_pct || ''}
-                onChange={(e) => updateField('body_fat_pct', parseInt(e.target.value))}
+                value={formData.body_fat_pct === undefined || isNaN(formData.body_fat_pct as number) ? '' : formData.body_fat_pct}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField('body_fat_pct', val === '' ? undefined : parseInt(val));
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
@@ -262,7 +308,7 @@ export default function OnboardingScreen() {
               {activities.map((a) => (
                 <button
                   key={a.label}
-                  onClick={() => { updateField('activity_factor', a.factor); handleNext(); }}
+                  onClick={() => { updateField('activity_factor', a.factor); handleNext(a.factor); }}
                   className={cn(
                     "w-full p-4 rounded-xl border text-left transition-all flex justify-between items-center",
                     formData.activity_factor === a.factor ? "bg-amber-500/10 border-amber-500" : "bg-zinc-900 border-zinc-800"
@@ -293,7 +339,7 @@ export default function OnboardingScreen() {
               {phases.map((p) => (
                 <button
                   key={p.id}
-                  onClick={() => { updateField('phase', p.id); handleNext(); }}
+                  onClick={() => { updateField('phase', p.id); handleNext(p.id); }}
                   className={cn(
                     "p-6 rounded-xl border text-left transition-all flex justify-between items-center",
                     formData.phase === p.id ? "bg-amber-500/10 border-amber-500" : "bg-zinc-900 border-zinc-800"
@@ -315,16 +361,20 @@ export default function OnboardingScreen() {
             <h2 className="text-2xl font-black uppercase tracking-tight">目標体重を入力</h2>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">目標体重 (KG)</label>
-              <input 
-                type="number" 
-                step="0.1"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
-                placeholder="80.0"
-                value={formData.goal_weight_kg || ''}
-                onChange={(e) => updateField('goal_weight_kg', parseFloat(e.target.value))}
-                onKeyDown={(e) => e.key === 'Enter' && handleNext()}
-                autoFocus
-              />
+                <input 
+                  type="number" 
+                  inputMode="numeric"
+                  step="0.1"
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                  placeholder="80.0"
+                  value={formData.goal_weight_kg === undefined || isNaN(formData.goal_weight_kg as number) ? '' : formData.goal_weight_kg}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateField('goal_weight_kg', val === '' ? undefined : parseFloat(val));
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNext()}
+                  autoFocus
+                />
             </div>
           </div>
         );

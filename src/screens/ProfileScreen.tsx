@@ -288,13 +288,13 @@ export default function ProfileScreen() {
             value={user.name} 
             onClick={() => setEditingField({ key: 'name', label: '名前', value: user.name })}
           />
-          <ProfileItem icon={<Calendar size={18} />} label="年齢" value={`${user.age} 歳`} />
-          <ProfileItem icon={<Ruler size={18} />} label="身長" value={`${user.height_cm} cm`} />
+          <ProfileItem icon={<Calendar size={18} />} label="年齢" value={user.age ? `${user.age} 歳` : '未設定'} />
+          <ProfileItem icon={<Ruler size={18} />} label="身長" value={user.height_cm ? `${user.height_cm} cm` : '未設定'} />
           <ProfileItem 
             icon={<Weight size={18} />} 
             label="現在の体重" 
-            value={`${user.weight_kg} kg`} 
-            onClick={() => setEditingField({ key: 'weight_kg', label: '現在の体重', value: user.weight_kg })}
+            value={user.weight_kg ? `${user.weight_kg} kg` : '未設定'} 
+            onClick={() => setEditingField({ key: 'weight_kg', label: '現在の体重', value: user.weight_kg || 0 })}
           />
           {user.body_fat_pct && <ProfileItem icon={<Activity size={18} />} label="体脂肪率" value={`${user.body_fat_pct} %`} />}
         </div>
@@ -306,10 +306,10 @@ export default function ProfileScreen() {
           <ProfileItem 
             icon={<Target size={18} />} 
             label="目標体重" 
-            value={`${user.goal_weight_kg} kg`} 
-            onClick={() => setEditingField({ key: 'goal_weight_kg', label: '目標体重', value: user.goal_weight_kg })}
+            value={user.goal_weight_kg ? `${user.goal_weight_kg} kg` : '未設定'} 
+            onClick={() => setEditingField({ key: 'goal_weight_kg', label: '目標体重', value: user.goal_weight_kg || 0 })}
           />
-          <ProfileItem icon={<Activity size={18} />} label="活動レベル" value={user.activity_factor?.toString() || 'N/A'} />
+          <ProfileItem icon={<Activity size={18} />} label="活動レベル" value={user.activity_factor ? user.activity_factor.toString() : '未設定'} />
           <ProfileItem 
             icon={<Shield size={18} />} 
             label="食事スタイル" 
