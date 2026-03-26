@@ -10,6 +10,7 @@ export type TrainingExperience = 'beginner' | 'intermediate' | 'advanced';
 export interface User {
   id?: number;
   name: string;
+  email: string;
   sex: 'male' | 'female';
   age: number;
   height_cm: number;
@@ -85,4 +86,21 @@ export interface VisualLogEntry {
   image_url: string;
   label?: string;
   notes?: string;
+}
+
+export interface FriendRequest {
+  id: string;
+  fromId: string;
+  fromName: string;
+  toId: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  timestamp: string;
+}
+
+export interface Friend {
+  id: string;
+  uid: string;
+  name: string;
+  photoUrl?: string;
+  addedAt: string;
 }

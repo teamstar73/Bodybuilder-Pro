@@ -5,10 +5,10 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, FoodEntry, Measurement, Supplement, PeakDay, MacroTarget, VisualLogEntry } from '../types';
+import { User, FoodEntry, Measurement, Supplement, PeakDay, MacroTarget, VisualLogEntry, Friend, FriendRequest } from '../types';
 import { calculateTDEE, calculateTargetMacros, generatePeakingProtocol, getPersonalizedRecommendations } from '../utils/nutrition';
 import { db, auth } from '../firebase';
-import { doc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, where, getDocFromServer } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, where, getDocFromServer, getDocs } from 'firebase/firestore';
 
 enum OperationType {
   CREATE = 'create',
@@ -74,9 +74,19 @@ interface AppStore {
   
   measurements: Measurement[];
   addMeasurement: (m: Omit<Measurement, 'id'>) => Promise<void>;
+  removeMeasurement: (id: string | number) => Promise<void>;
   
   visualLog: VisualLogEntry[];
   addVisualLogEntry: (entry: Omit<VisualLogEntry, 'id'>) => Promise<void>;
+  removeVisualLogEntry: (id: string | number) => Promise<void>;
+  
+  friends: Friend[];
+  friendRequests: FriendRequest[];
+  sendFriendRequest: (toUserId: string) => Promise<void>;
+  acceptFriendRequest: (requestId: string) => Promise<void>;
+  rejectFriendRequest: (requestId: string) => Promise<void>;
+  removeFriend: (friendId: string) => Promise<void>;
+  searchUsers: (email: string) => Promise<{uid: string, name: string}[]>;
   
   waterIntake: number;
   addWater: (amount: number) => Promise<void>;
@@ -213,6 +223,15 @@ export const useAppStore = create<AppStore>()(
           handleFirestoreError(error, OperationType.CREATE, `users/${userId}/measurements`);
         }
       },
+      removeMeasurement: async (id) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await deleteDoc(doc(db, 'users', userId, 'measurements', id.toString()));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, `users/${userId}/measurements/${id}`);
+        }
+      },
       
       visualLog: [],
       addVisualLogEntry: async (entry) => {
@@ -222,6 +241,88 @@ export const useAppStore = create<AppStore>()(
           await addDoc(collection(db, 'users', userId, 'visualLog'), entry);
         } catch (error) {
           handleFirestoreError(error, OperationType.CREATE, `users/${userId}/visualLog`);
+        }
+      },
+      removeVisualLogEntry: async (id) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await deleteDoc(doc(db, 'users', userId, 'visualLog', id.toString()));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, `users/${userId}/visualLog/${id}`);
+        }
+      },
+      
+      friends: [],
+      friendRequests: [],
+      sendFriendRequest: async (toUserId) => {
+        const { userId, user } = get();
+        if (!userId || !user) return;
+        try {
+          await addDoc(collection(db, 'friendRequests'), {
+            fromId: userId,
+            fromName: user.name,
+            toId: toUserId,
+            status: 'pending',
+            timestamp: new Date().toISOString()
+          });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, 'friendRequests');
+        }
+      },
+      acceptFriendRequest: async (requestId) => {
+        const { userId, user, friendRequests } = get();
+        if (!userId || !user) return;
+        const request = friendRequests.find(r => r.id === requestId);
+        if (!request) return;
+
+        try {
+          // Update request status
+          await setDoc(doc(db, 'friendRequests', requestId), { status: 'accepted' }, { merge: true });
+          
+          // Add to both users' friends subcollection
+          const friendData = {
+            uid: request.fromId,
+            name: request.fromName,
+            addedAt: new Date().toISOString()
+          };
+          await setDoc(doc(db, 'users', userId, 'friends', request.fromId), friendData);
+          
+          const myData = {
+            uid: userId,
+            name: user.name,
+            addedAt: new Date().toISOString()
+          };
+          await setDoc(doc(db, 'users', request.fromId, 'friends', userId), myData);
+        } catch (error) {
+          handleFirestoreError(error, OperationType.UPDATE, `friendRequests/${requestId}`);
+        }
+      },
+      rejectFriendRequest: async (requestId) => {
+        try {
+          await setDoc(doc(db, 'friendRequests', requestId), { status: 'rejected' }, { merge: true });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.UPDATE, `friendRequests/${requestId}`);
+        }
+      },
+      removeFriend: async (friendId) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await deleteDoc(doc(db, 'users', userId, 'friends', friendId));
+          await deleteDoc(doc(db, 'users', friendId, 'friends', userId));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, `users/${userId}/friends/${friendId}`);
+        }
+      },
+      searchUsers: async (email) => {
+        try {
+          const q = query(collection(db, 'users'), where('email', '==', email));
+          const snapshot = await getDocs(q);
+          return snapshot.docs.map(doc => ({ uid: doc.id, name: doc.data().name }));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.GET, 'users');
+          return [];
         }
       },
       
@@ -273,27 +374,55 @@ export const useAppStore = create<AppStore>()(
               set({ peakingProtocol: protocol });
             }
           }
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}`);
         });
 
         const unsubFood = onSnapshot(collection(db, 'users', userId, 'foodLog'), (snapshot) => {
           const foodLog = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
           set({ foodLog });
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}/foodLog`);
         });
 
         const unsubMeasurements = onSnapshot(collection(db, 'users', userId, 'measurements'), (snapshot) => {
           const measurements = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
           set({ measurements });
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}/measurements`);
         });
 
         const unsubSupplements = onSnapshot(collection(db, 'users', userId, 'supplements'), (snapshot) => {
           const supplements = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
           set({ supplements });
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}/supplements`);
         });
 
         const unsubVisualLog = onSnapshot(collection(db, 'users', userId, 'visualLog'), (snapshot) => {
           const visualLog = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
           set({ visualLog });
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}/visualLog`);
         });
+
+        const unsubFriends = onSnapshot(collection(db, 'users', userId, 'friends'), (snapshot) => {
+          const friends = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
+          set({ friends });
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}/friends`);
+        });
+
+        const unsubFriendRequests = onSnapshot(
+          query(collection(db, 'friendRequests'), where('toId', '==', userId), where('status', '==', 'pending')),
+          (snapshot) => {
+            const friendRequests = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as any[];
+            set({ friendRequests });
+          },
+          (error) => {
+            handleFirestoreError(error, OperationType.GET, `friendRequests`);
+          }
+        );
 
         return () => {
           unsubUser();
@@ -301,6 +430,8 @@ export const useAppStore = create<AppStore>()(
           unsubMeasurements();
           unsubSupplements();
           unsubVisualLog();
+          unsubFriends();
+          unsubFriendRequests();
         };
       },
       

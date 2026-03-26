@@ -11,8 +11,9 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function ProgressScreen() {
-  const { user, measurements, addMeasurement, visualLog, addVisualLogEntry, get30DayAvgCalories, getTodayMacros } = useAppStore();
+  const { user, measurements, addMeasurement, removeMeasurement, visualLog, addVisualLogEntry, removeVisualLogEntry, get30DayAvgCalories, getTodayMacros } = useAppStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [modalType, setModalType] = useState<'measurement' | 'visual'>('measurement');
   const [newWeight, setNewWeight] = useState(user?.weight_kg?.toString() || '');
   const [newBodyFat, setNewBodyFat] = useState(user?.body_fat_pct?.toString() || '');
@@ -180,6 +181,14 @@ export default function ProgressScreen() {
                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
                   referrerPolicy="no-referrer"
                 />
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={() => removeVisualLogEntry(entry.id)}
+                    className="p-2 bg-black/50 backdrop-blur-md rounded-full text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
                 <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
                   <div className="text-[10px] font-black uppercase text-zinc-400">{entry.label}</div>
                   <div className="text-sm font-bold">{new Date(entry.date).toLocaleDateString('ja-JP')}</div>
@@ -188,6 +197,52 @@ export default function ProgressScreen() {
             ))
           )}
         </div>
+      </section>
+
+      {/* History Section */}
+      <section className="space-y-4">
+        <button 
+          onClick={() => setShowHistory(!showHistory)}
+          className="w-full py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+        >
+          {showHistory ? 'Hide History' : 'Show Full History'}
+        </button>
+
+        <AnimatePresence>
+          {showHistory && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden space-y-4"
+            >
+              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 bg-zinc-800/50 border-b border-zinc-800 flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest">Measurement History</span>
+                </div>
+                <div className="divide-y divide-zinc-800">
+                  {measurements.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(m => (
+                    <div key={m.id} className="p-4 flex justify-between items-center">
+                      <div>
+                        <div className="text-sm font-bold">{m.weight_kg} kg <span className="text-zinc-500 text-xs font-normal">/ {m.body_fat_pct}% BF</span></div>
+                        <div className="text-[10px] text-zinc-500 uppercase">{new Date(m.date).toLocaleDateString('ja-JP')}</div>
+                      </div>
+                      <button 
+                        onClick={() => removeMeasurement(m.id)}
+                        className="p-2 text-zinc-600 hover:text-rose-500 transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {measurements.length === 0 && (
+                    <div className="p-8 text-center text-zinc-500 text-xs font-bold uppercase tracking-widest">No history found</div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </section>
 
       {/* Clinical Markers */}
@@ -271,10 +326,14 @@ export default function ProgressScreen() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="aspect-[3/4] rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600">
-                    <Camera size={48} className="mb-2" />
+                  <button 
+                    onClick={handleAddVisualEntry}
+                    disabled={isSaving}
+                    className="w-full aspect-[3/4] rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600 hover:border-amber-500 hover:text-amber-500 transition-all group"
+                  >
+                    <Camera size={48} className="mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-[10px] font-bold uppercase tracking-widest">Tap to Upload</p>
-                  </div>
+                  </button>
                   <p className="text-[10px] text-zinc-500 text-center">※デモ版ではランダムな画像が保存されます</p>
                   <button 
                     onClick={handleAddVisualEntry}

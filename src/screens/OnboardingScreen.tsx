@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store/useAppStore';
 import { User } from '../types';
+import { auth } from '../firebase';
 import { calculateTDEE, calculateTargetMacros } from '../utils/nutrition';
 import { ChevronRight, ChevronLeft, Check, Info, Activity, Target, Calendar, Trophy } from 'lucide-react';
 import { colors } from '../constants/theme';
@@ -75,6 +76,7 @@ export default function OnboardingScreen() {
       try {
         const finalData: User = {
           ...formData,
+          email: auth.currentUser?.email || '',
           age: formData.age || 0,
           height_cm: formData.height_cm || 0,
           weight_kg: formData.weight_kg || 0,

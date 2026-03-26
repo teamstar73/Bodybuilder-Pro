@@ -11,8 +11,9 @@ import FoodLogScreen from './screens/FoodLogScreen';
 import PeakingScreen from './screens/PeakingScreen';
 import ProgressScreen from './screens/ProgressScreen';
 import ProfileScreen from './screens/ProfileScreen';
+import FriendsScreen from './screens/FriendsScreen';
 import SettingsScreen from './screens/SettingsScreen';
-import { Home, Utensils, Timer, BarChart2, Menu, Settings, User as UserIcon, X, Trash2, LogOut, ChevronRight, LogIn } from 'lucide-react';
+import { Home, Utensils, Timer, BarChart2, Menu, Settings, User as UserIcon, X, Trash2, LogOut, ChevronRight, LogIn, Users } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, loginWithGoogle, logout as firebaseLogout } from './firebase';
@@ -20,7 +21,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
   const { user, userId, setUserId, syncWithFirebase, resetData } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'peaking' | 'progress' | 'profile' | 'settings'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'peaking' | 'progress' | 'friends' | 'profile' | 'settings'>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -94,6 +95,7 @@ export default function App() {
       case 'log': return <FoodLogScreen />;
       case 'peaking': return <PeakingScreen />;
       case 'progress': return <ProgressScreen />;
+      case 'friends': return <FriendsScreen />;
       case 'profile': return <ProfileScreen />;
       case 'settings': return <SettingsScreen onNavigate={navigateTo} />;
     }
@@ -161,6 +163,18 @@ export default function App() {
                   </div>
                 </button>
 
+                <SidebarItem 
+                  icon={<BarChart2 size={20} />} 
+                  label="進捗状況" 
+                  onClick={() => navigateTo('progress')} 
+                  active={activeTab === 'progress'}
+                />
+                <SidebarItem 
+                  icon={<Users size={20} />} 
+                  label="フレンド" 
+                  onClick={() => navigateTo('friends')} 
+                  active={activeTab === 'friends'}
+                />
                 <SidebarItem 
                   icon={<UserIcon size={20} />} 
                   label="プロフィール設定" 
@@ -253,6 +267,12 @@ export default function App() {
           onClick={() => setActiveTab('progress')} 
           icon={<BarChart2 size={24} />} 
           label="Progress" 
+        />
+        <NavItem 
+          active={activeTab === 'friends'} 
+          onClick={() => setActiveTab('friends')} 
+          icon={<Users size={24} />} 
+          label="Friends" 
         />
       </nav>
     </div>

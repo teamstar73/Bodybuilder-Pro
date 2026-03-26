@@ -48,9 +48,17 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function isFriend(userId) {
+      return isAuthenticated() && (
+        exists(/databases/$(database)/documents/users/$(userId)/friends/$(request.auth.uid)) ||
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId))
+      );
+    }
+
     function isAdmin() {
       return isAuthenticated() &&
-        (request.auth.token.email == "jny0121str@gmail.com" || request.auth.uid == "7VEhLC5PKYT9voprMZXuG1LJrGg1");
+        ((request.auth.token.email == "jny0121str@gmail.com" && request.auth.token.email_verified == true) || 
+         request.auth.uid == "7VEhLC5PKYT9voprMZXuG1LJrGg1");
     }
 
     function hasRequiredFields(fields) {
@@ -92,7 +100,14 @@ service cloud.firestore {
     // ===============================================================
 
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isFriend(userId) || isAdmin();
+      allow list: if isAuthenticated() && (
+        isAdmin() ||
+        (request.query != null && (
+          ('limit' in request.query && request.query.limit <= 10) ||
+          ('email' in request.query && request.query.email != null)
+        ))
+      );
       allow create: if isOwner(userId) && 
                       hasRequiredFields(['name', 'sex', 'age', 'height_cm', 'weight_kg', 'activity_factor', 'phase']) &&
                       isValidUser(request.resource.data);
@@ -100,25 +115,54 @@ service cloud.firestore {
       allow delete: if isAdmin();
 
       match /foodLog/{entryId} {
-        allow read: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
         allow create: if isOwner(userId) && isValidFoodEntry(request.resource.data);
         allow update: if (isOwner(userId) && isValidFoodEntry(request.resource.data)) || isAdmin();
         allow delete: if isOwner(userId) || isAdmin();
       }
 
       match /measurements/{measurementId} {
-        allow read: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
         allow create: if isOwner(userId);
         allow update: if isOwner(userId) || isAdmin();
         allow delete: if isOwner(userId) || isAdmin();
       }
 
       match /supplements/{supplementId} {
-        allow read: if isOwner(userId) || isAdmin();
+        allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
         allow create: if isOwner(userId);
         allow update: if isOwner(userId) || isAdmin();
         allow delete: if isOwner(userId) || isAdmin();
       }
+
+      match /visualLog/{logId} {
+        allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
+        allow write: if isOwner(userId) || isAdmin();
+      }
+
+      match /friends/{friendId} {
+        allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
+        allow create: if isOwner(userId) || isAdmin();
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    match /friendRequests/{requestId} {
+      allow get: if isAuthenticated() && (
+        request.auth.uid == resource.data.fromId || 
+        request.auth.uid == resource.data.toId ||
+        isAdmin()
+      );
+      allow list: if isAuthenticated() && (
+        isAdmin() ||
+        (request.query != null && (
+          ('toId' in request.query && request.query.toId == request.auth.uid) ||
+          ('fromId' in request.query && request.query.fromId == request.auth.uid)
+        ))
+      );
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.fromId;
+      allow update: if isAuthenticated() && (request.auth.uid == resource.data.toId || isAdmin());
+      allow delete: if isAuthenticated() && (request.auth.uid == resource.data.fromId || request.auth.uid == resource.data.toId || isAdmin());
     }
 
     // Default deny

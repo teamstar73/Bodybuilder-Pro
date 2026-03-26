@@ -103,6 +103,14 @@
     "/users/{userId}/visualLog/{logId}": {
       "schema": "VisualLog",
       "description": "Progress photos"
+    },
+    "/friendRequests/{requestId}": {
+      "schema": "FriendRequest",
+      "description": "Friend requests between users."
+    },
+    "/users/{userId}/friends/{friendId}": {
+      "schema": "Friend",
+      "description": "User's friends."
     }
   }
 }
