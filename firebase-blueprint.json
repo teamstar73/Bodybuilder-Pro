@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User's physical and goal information",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "sex": { "type": "string", "enum": ["male", "female"] },
+        "age": { "type": "integer" },
+        "height_cm": { "type": "number" },
+        "weight_kg": { "type": "number" },
+        "body_fat_pct": { "type": "number" },
+        "activity_factor": { "type": "number" },
+        "phase": { "type": "string", "enum": ["bulk", "lean-bulk", "cut", "peak", "maintain"] },
+        "diet_type": { "type": "string", "enum": ["standard", "plant-based", "keto", "low-carb", "carb-cycling", "fasting"] },
+        "training_experience": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
+        "goal_weight_kg": { "type": "number" },
+        "allergies": { "type": "array", "items": { "type": "string" } },
+        "competition_date": { "type": "string", "format": "date" },
+        "fasting_window": { "type": "string" }
+      },
+      "required": ["name", "sex", "age", "height_cm", "weight_kg", "activity_factor", "phase", "diet_type", "training_experience"]
+    },
+    "FoodEntry": {
+      "title": "Food Entry",
+      "description": "A single food item logged by the user",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "meal_type": { "type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"] },
+        "food_name": { "type": "string" },
+        "amount_g": { "type": "number" },
+        "calories": { "type": "number" },
+        "protein_g": { "type": "number" },
+        "carbs_g": { "type": "number" },
+        "fat_g": { "type": "number" }
+      },
+      "required": ["date", "meal_type", "food_name", "amount_g", "calories", "protein_g", "carbs_g", "fat_g"]
+    },
+    "Measurement": {
+      "title": "Body Measurement",
+      "description": "Weight and body fat tracking",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "weight_kg": { "type": "number" },
+        "body_fat_pct": { "type": "number" },
+        "muscle_mass_kg": { "type": "number" },
+        "ffmi": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["date", "weight_kg", "ffmi"]
+    },
+    "Supplement": {
+      "title": "Supplement",
+      "description": "Supplement tracking",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "dose_g": { "type": "number" },
+        "timing": { "type": "string" },
+        "frequency": { "type": "string" },
+        "evidence_level": { "type": "string", "enum": ["A", "B", "C"] },
+        "stock_days_remaining": { "type": "integer" },
+        "is_active": { "type": "boolean" },
+        "taken_dates": { "type": "array", "items": { "type": "string", "format": "date" } }
+      },
+      "required": ["name", "dose_g", "timing", "frequency", "evidence_level", "stock_days_remaining", "is_active", "taken_dates"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document"
+    },
+    "/users/{userId}/foodLog/{entryId}": {
+      "schema": "FoodEntry",
+      "description": "Daily food logs"
+    },
+    "/users/{userId}/measurements/{measurementId}": {
+      "schema": "Measurement",
+      "description": "Body progress tracking"
+    },
+    "/users/{userId}/supplements/{supplementId}": {
+      "schema": "Supplement",
+      "description": "Supplements and intake history"
+    }
+  }
+}

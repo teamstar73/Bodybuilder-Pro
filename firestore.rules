@@ -1,0 +1,126 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Fields:
+    //   - name: string (required)
+    //   - sex: string (required, enum: male, female)
+    //   - age: int (required)
+    //   - height_cm: number (required)
+    //   - weight_kg: number (required)
+    //   - body_fat_pct: number (optional)
+    //   - activity_factor: number (required)
+    //   - phase: string (required, enum: bulk, lean-bulk, cut, peak, maintain)
+    //   - diet_type: string (required, enum: standard, plant-based, keto, low-carb, carb-cycling, fasting)
+    //   - training_experience: string (required, enum: beginner, intermediate, advanced)
+    //   - goal_weight_kg: number (optional)
+    //   - allergies: list (optional)
+    //   - competition_date: string (optional, date format)
+    //   - fasting_window: string (optional)
+    //
+    // Collection: /users/{userId}/foodLog/{entryId}
+    // Fields:
+    //   - date: string (required, date format)
+    //   - meal_type: string (required, enum: breakfast, lunch, dinner, snack)
+    //   - food_name: string (required)
+    //   - amount_g: number (required)
+    //   - calories: number (required)
+    //   - protein_g: number (required)
+    //   - carbs_g: number (required)
+    //   - fat_g: number (required)
+    //
+    // [Other collections follow similar patterns]
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (request.auth.token.email == "jny0121str@gmail.com" || request.auth.uid == "7VEhLC5PKYT9voprMZXuG1LJrGg1");
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // Domain Validators
+    function isValidUser(data) {
+      return (!('name' in data) || (data.name is string && data.name.size() > 0 && data.name.size() < 100)) &&
+             (!('sex' in data) || data.sex in ['male', 'female']) &&
+             (!('age' in data) || (data.age is number && data.age > 0 && data.age < 120)) &&
+             (!('height_cm' in data) || (data.height_cm is number && data.height_cm > 0)) &&
+             (!('weight_kg' in data) || (data.weight_kg is number && data.weight_kg > 0)) &&
+             (!('activity_factor' in data) || (data.activity_factor is number && data.activity_factor > 0)) &&
+             (!('phase' in data) || data.phase in ['bulk', 'lean-bulk', 'cut', 'peak', 'maintain']) &&
+             (!('diet_type' in data) || data.diet_type == "" || data.diet_type in ['standard', 'plant-based', 'keto', 'low-carb', 'carb-cycling', 'fasting']) &&
+             (!('training_experience' in data) || data.training_experience == "" || data.training_experience in ['beginner', 'intermediate', 'advanced']);
+    }
+
+    function isValidFoodEntry(data) {
+      return hasRequiredFields(['date', 'meal_type', 'food_name', 'amount_g', 'calories', 'protein_g', 'carbs_g', 'fat_g']) &&
+             data.meal_type in ['breakfast', 'lunch', 'dinner', 'snack'] &&
+             data.food_name is string && data.food_name.size() > 0 && data.food_name.size() < 200 &&
+             data.calories is number && data.calories >= 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && 
+                      hasRequiredFields(['name', 'sex', 'age', 'height_cm', 'weight_kg', 'activity_factor', 'phase']) &&
+                      isValidUser(request.resource.data);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+
+      match /foodLog/{entryId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidFoodEntry(request.resource.data);
+        allow update: if (isOwner(userId) && isValidFoodEntry(request.resource.data)) || isAdmin();
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /measurements/{measurementId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) || isAdmin();
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /supplements/{supplementId} {
+        allow read: if isOwner(userId) || isAdmin();
+        allow create: if isOwner(userId);
+        allow update: if isOwner(userId) || isAdmin();
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}
