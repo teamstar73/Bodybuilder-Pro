@@ -26,7 +26,7 @@ export default function OnboardingScreen() {
   });
 
   const [isSaving, setIsSaving] = useState(false);
-  const totalSteps = 13;
+  const totalSteps = 14;
 
   const handleNext = async (overrideValue?: any) => {
     console.log(`handleNext called at step ${step}`, { formData, overrideValue });
@@ -46,6 +46,9 @@ export default function OnboardingScreen() {
     const weight = step === 5 ? (overrideValue ?? formData.weight_kg) : formData.weight_kg;
     if (step === 5 && !weight) return;
     
+    const bodyFat = step === 6 ? (overrideValue ?? formData.body_fat_pct) : formData.body_fat_pct;
+    if (step === 6 && !bodyFat) return;
+    
     const activity = step === 7 ? (overrideValue ?? formData.activity_factor) : formData.activity_factor;
     if (step === 7 && !activity) return;
     
@@ -55,9 +58,12 @@ export default function OnboardingScreen() {
     const goalWeight = step === 9 ? (overrideValue ?? formData.goal_weight_kg) : formData.goal_weight_kg;
     if (step === 9 && !goalWeight) return;
 
+    const goalBodyFat = step === 10 ? (overrideValue ?? formData.goal_body_fat_pct) : formData.goal_body_fat_pct;
+    if (step === 10 && !goalBodyFat) return;
+
     let nextStep = step + 1;
-    if (nextStep === 10 && formData.diet_type !== 'fasting') {
-      nextStep = 11;
+    if (nextStep === 11 && formData.diet_type !== 'fasting') {
+      nextStep = 12;
     }
 
     if (step < totalSteps) {
@@ -74,6 +80,7 @@ export default function OnboardingScreen() {
           weight_kg: formData.weight_kg || 0,
           activity_factor: formData.activity_factor || 1.2,
           goal_weight_kg: formData.goal_weight_kg || formData.weight_kg || 0,
+          goal_body_fat_pct: formData.goal_body_fat_pct || formData.body_fat_pct || 0,
         } as User;
         
         console.log('Finalizing onboarding with data:', finalData);
@@ -89,8 +96,8 @@ export default function OnboardingScreen() {
 
   const handleBack = () => {
     let prevStep = step - 1;
-    if (prevStep === 10 && formData.diet_type !== 'fasting') {
-      prevStep = 9;
+    if (prevStep === 11 && formData.diet_type !== 'fasting') {
+      prevStep = 10;
     }
     if (step > 1) setStep(prevStep);
   };
@@ -273,23 +280,24 @@ export default function OnboardingScreen() {
       case 6:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-black uppercase tracking-tight">体脂肪率 (任意)</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tight">体脂肪率を入力</h2>
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪 %</label>
               <input 
                 type="number" 
-                inputMode="numeric"
+                inputMode="decimal"
+                step="0.1"
                 className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
-                placeholder="12"
+                placeholder="12.0"
                 value={formData.body_fat_pct === undefined || isNaN(formData.body_fat_pct as number) ? '' : formData.body_fat_pct}
                 onChange={(e) => {
                   const val = e.target.value;
-                  updateField('body_fat_pct', val === '' ? undefined : parseInt(val));
+                  updateField('body_fat_pct', val === '' ? undefined : parseFloat(val));
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
-              <p className="mt-4 text-zinc-500 text-xs">正確なマクロ計算に役立ちますが、不明な場合は空欄でも構いません。</p>
+              <p className="mt-4 text-zinc-500 text-xs">正確なFFMI（除脂肪体重指数）の算出とマクロ計算に必須です。</p>
             </div>
           </div>
         );
@@ -363,7 +371,7 @@ export default function OnboardingScreen() {
               <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">目標体重 (KG)</label>
                 <input 
                   type="number" 
-                  inputMode="numeric"
+                  inputMode="decimal"
                   step="0.1"
                   className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
                   placeholder="80.0"
@@ -379,6 +387,30 @@ export default function OnboardingScreen() {
           </div>
         );
       case 10:
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-black uppercase tracking-tight">目標体脂肪率を入力</h2>
+            <div>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">目標体脂肪 %</label>
+              <input 
+                type="number" 
+                inputMode="decimal"
+                step="0.1"
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                placeholder="8.0"
+                value={formData.goal_body_fat_pct === undefined || isNaN(formData.goal_body_fat_pct as number) ? '' : formData.goal_body_fat_pct}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  updateField('goal_body_fat_pct', val === '' ? undefined : parseFloat(val));
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleNext()}
+                autoFocus
+              />
+              <p className="mt-4 text-zinc-500 text-xs">理想のコンディションに向けた目標値を設定してください。</p>
+            </div>
+          </div>
+        );
+      case 11:
         const windows = ['16:8', '18:6', '20:4', 'OMAD'];
         return (
           <div className="space-y-6">
@@ -399,7 +431,7 @@ export default function OnboardingScreen() {
             </div>
           </div>
         );
-      case 11:
+      case 12:
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">アレルギー・制限 (任意)</h2>
@@ -417,7 +449,7 @@ export default function OnboardingScreen() {
             </div>
           </div>
         );
-      case 12:
+      case 13:
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">大会日程 (任意)</h2>
@@ -438,7 +470,7 @@ export default function OnboardingScreen() {
             </div>
           </div>
         );
-      case 13:
+      case 14:
         const tdee = calculateTDEE(formData as User);
         const targets = calculateTargetMacros(formData as User);
         return (

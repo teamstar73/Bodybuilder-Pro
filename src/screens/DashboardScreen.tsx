@@ -15,6 +15,7 @@ export default function DashboardScreen({ onNavigate }: { onNavigate?: (tab: 'ho
   const { user, getTodayMacros, getTargetMacros, getTodayLog, toggleSupplementTaken, supplements, addMeasurement, updateUser, measurements, waterIntake, addWater } = useAppStore();
   const [isWeightModalOpen, setIsWeightModalOpen] = useState(false);
   const [newWeight, setNewWeight] = useState(user?.weight_kg?.toString() || '');
+  const [newBodyFat, setNewBodyFat] = useState(user?.body_fat_pct?.toString() || '');
   const [isSavingWeight, setIsSavingWeight] = useState(false);
 
   const todayMacros = getTodayMacros();
@@ -40,15 +41,27 @@ export default function DashboardScreen({ onNavigate }: { onNavigate?: (tab: 'ho
 
   const handleSaveWeight = async () => {
     if (!newWeight || isNaN(parseFloat(newWeight))) return;
+    if (!newBodyFat || isNaN(parseFloat(newBodyFat))) return;
     setIsSavingWeight(true);
     try {
       const weight = parseFloat(newWeight);
+      const bodyFat = parseFloat(newBodyFat);
+      
+      // Calculate FFMI
+      let ffmi = 0;
+      if (user?.height_cm) {
+        const heightM = user.height_cm / 100;
+        const lbm = weight * (1 - bodyFat / 100);
+        ffmi = Math.round((lbm / (heightM * heightM)) * 10) / 10;
+      }
+
       await addMeasurement({
         date: todayStr,
         weight_kg: weight,
-        ffmi: 0,
+        body_fat_pct: bodyFat,
+        ffmi: ffmi,
       });
-      await updateUser({ weight_kg: weight });
+      await updateUser({ weight_kg: weight, body_fat_pct: bodyFat });
       setIsWeightModalOpen(false);
     } catch (error) {
       console.error('Error saving weight:', error);
@@ -261,22 +274,35 @@ export default function DashboardScreen({ onNavigate }: { onNavigate?: (tab: 'ho
               </div>
               
               <div className="space-y-6">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
-                  <input 
-                    type="number" 
-                    step="0.1"
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white text-2xl font-black outline-none focus:border-amber-500"
-                    placeholder="85.5"
-                    value={newWeight}
-                    onChange={(e) => setNewWeight(e.target.value)}
-                    autoFocus
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
+                    <input 
+                      type="number" 
+                      step="0.1"
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white text-2xl font-black outline-none focus:border-amber-500"
+                      placeholder="85.5"
+                      value={newWeight}
+                      onChange={(e) => setNewWeight(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪 (%)</label>
+                    <input 
+                      type="number" 
+                      step="0.1"
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white text-2xl font-black outline-none focus:border-amber-500"
+                      placeholder="12.0"
+                      value={newBodyFat}
+                      onChange={(e) => setNewBodyFat(e.target.value)}
+                    />
+                  </div>
                 </div>
                 
                 <button 
                   onClick={handleSaveWeight}
-                  disabled={isSavingWeight || !newWeight}
+                  disabled={isSavingWeight || !newWeight || !newBodyFat}
                   className="w-full bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all"
                 >
                   {isSavingWeight ? (

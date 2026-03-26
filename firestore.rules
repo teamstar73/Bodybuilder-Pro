@@ -18,6 +18,7 @@ service cloud.firestore {
     //   - diet_type: string (required, enum: standard, plant-based, keto, low-carb, carb-cycling, fasting)
     //   - training_experience: string (required, enum: beginner, intermediate, advanced)
     //   - goal_weight_kg: number (optional)
+    //   - goal_body_fat_pct: number (optional)
     //   - allergies: list (optional)
     //   - competition_date: string (optional, date format)
     //   - fasting_window: string (optional)
@@ -71,6 +72,8 @@ service cloud.firestore {
              (!('age' in data) || (data.age is number && data.age > 0 && data.age < 120)) &&
              (!('height_cm' in data) || (data.height_cm is number && data.height_cm > 0)) &&
              (!('weight_kg' in data) || (data.weight_kg is number && data.weight_kg > 0)) &&
+             (!('body_fat_pct' in data) || (data.body_fat_pct is number && data.body_fat_pct >= 0)) &&
+             (!('goal_body_fat_pct' in data) || (data.goal_body_fat_pct is number && data.goal_body_fat_pct >= 0)) &&
              (!('activity_factor' in data) || (data.activity_factor is number && data.activity_factor > 0)) &&
              (!('phase' in data) || data.phase in ['bulk', 'lean-bulk', 'cut', 'peak', 'maintain']) &&
              (!('diet_type' in data) || data.diet_type == "" || data.diet_type in ['standard', 'plant-based', 'keto', 'low-carb', 'carb-cycling', 'fasting']) &&

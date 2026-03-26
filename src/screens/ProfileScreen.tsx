@@ -61,7 +61,7 @@ export default function ProfileScreen() {
     e.preventDefault();
     if (editingField) {
       let value: any = editingField.value;
-      if (editingField.key.includes('weight') || editingField.key === 'activity_factor') {
+      if (editingField.key.includes('weight') || editingField.key === 'activity_factor' || editingField.key.includes('body_fat_pct')) {
         value = parseFloat(editingField.value);
         if (isNaN(value)) return;
       } else if (editingField.key === 'age' || editingField.key.includes('height')) {
@@ -288,15 +288,30 @@ export default function ProfileScreen() {
             value={user.name} 
             onClick={() => setEditingField({ key: 'name', label: '名前', value: user.name })}
           />
-          <ProfileItem icon={<Calendar size={18} />} label="年齢" value={user.age ? `${user.age} 歳` : '未設定'} />
-          <ProfileItem icon={<Ruler size={18} />} label="身長" value={user.height_cm ? `${user.height_cm} cm` : '未設定'} />
+          <ProfileItem 
+            icon={<Calendar size={18} />} 
+            label="年齢" 
+            value={user.age ? `${user.age} 歳` : '未設定'} 
+            onClick={() => setEditingField({ key: 'age', label: '年齢', value: user.age || 0 })}
+          />
+          <ProfileItem 
+            icon={<Ruler size={18} />} 
+            label="身長" 
+            value={user.height_cm ? `${user.height_cm} cm` : '未設定'} 
+            onClick={() => setEditingField({ key: 'height_cm', label: '身長', value: user.height_cm || 0 })}
+          />
           <ProfileItem 
             icon={<Weight size={18} />} 
             label="現在の体重" 
             value={user.weight_kg ? `${user.weight_kg} kg` : '未設定'} 
             onClick={() => setEditingField({ key: 'weight_kg', label: '現在の体重', value: user.weight_kg || 0 })}
           />
-          {user.body_fat_pct && <ProfileItem icon={<Activity size={18} />} label="体脂肪率" value={`${user.body_fat_pct} %`} />}
+          <ProfileItem 
+            icon={<Activity size={18} />} 
+            label="体脂肪率" 
+            value={user.body_fat_pct ? `${user.body_fat_pct} %` : '未設定'} 
+            onClick={() => setEditingField({ key: 'body_fat_pct', label: '体脂肪率', value: user.body_fat_pct || 0 })}
+          />
         </div>
       </div>
 
@@ -309,7 +324,18 @@ export default function ProfileScreen() {
             value={user.goal_weight_kg ? `${user.goal_weight_kg} kg` : '未設定'} 
             onClick={() => setEditingField({ key: 'goal_weight_kg', label: '目標体重', value: user.goal_weight_kg || 0 })}
           />
-          <ProfileItem icon={<Activity size={18} />} label="活動レベル" value={user.activity_factor ? user.activity_factor.toString() : '未設定'} />
+          <ProfileItem 
+            icon={<Activity size={18} />} 
+            label="目標体脂肪率" 
+            value={user.goal_body_fat_pct ? `${user.goal_body_fat_pct} %` : '未設定'} 
+            onClick={() => setEditingField({ key: 'goal_body_fat_pct', label: '目標体脂肪率', value: user.goal_body_fat_pct || 0 })}
+          />
+          <ProfileItem 
+            icon={<Activity size={18} />} 
+            label="活動レベル" 
+            value={user.activity_factor ? user.activity_factor.toString() : '未設定'} 
+            onClick={() => setEditingField({ key: 'activity_factor', label: '活動レベル', value: user.activity_factor || 1.2 })}
+          />
           <ProfileItem 
             icon={<Shield size={18} />} 
             label="食事スタイル" 

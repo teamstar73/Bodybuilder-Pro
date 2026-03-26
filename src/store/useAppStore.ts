@@ -204,6 +204,11 @@ export const useAppStore = create<AppStore>()(
         if (!userId) return;
         try {
           await addDoc(collection(db, 'users', userId, 'measurements'), m);
+          // Also update the user's current weight and body fat
+          await setDoc(doc(db, 'users', userId), { 
+            weight_kg: m.weight_kg, 
+            body_fat_pct: m.body_fat_pct 
+          }, { merge: true });
         } catch (error) {
           handleFirestoreError(error, OperationType.CREATE, `users/${userId}/measurements`);
         }

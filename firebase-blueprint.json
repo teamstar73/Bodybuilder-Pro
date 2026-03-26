@@ -16,6 +16,7 @@
         "diet_type": { "type": "string", "enum": ["standard", "plant-based", "keto", "low-carb", "carb-cycling", "fasting"] },
         "training_experience": { "type": "string", "enum": ["beginner", "intermediate", "advanced"] },
         "goal_weight_kg": { "type": "number" },
+        "goal_body_fat_pct": { "type": "number" },
         "allergies": { "type": "array", "items": { "type": "string" } },
         "competition_date": { "type": "string", "format": "date" },
         "fasting_window": { "type": "string" },

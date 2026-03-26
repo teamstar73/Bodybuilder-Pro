@@ -3,14 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Bell, Shield, Moon, Smartphone, Globe, Info, ChevronRight, Trash2, LogOut, User as UserIcon } from 'lucide-react';
+import { Bell, Shield, Moon, Smartphone, Globe, Info, ChevronRight, Trash2, LogOut, User as UserIcon, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { logout as firebaseLogout } from '../firebase';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) => void }) {
-  const { resetData, user } = useAppStore();
+  const { resetData, user, updateUser } = useAppStore();
+
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
 
   const handleReset = () => {
     if (window.confirm('すべてのデータをリセットしますか？この操作は取り消せません。')) {
@@ -23,6 +26,10 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
       firebaseLogout();
       resetData();
     }
+  };
+
+  const toggleNotifications = () => {
+    updateUser({ notifications_enabled: !user?.notifications_enabled });
   };
 
   return (
@@ -52,9 +59,23 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
       <div className="space-y-4">
         <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">一般設定</h3>
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-          <SettingsItem icon={<Bell size={18} />} label="通知設定" onClick={() => alert('通知設定は現在開発中です')} />
-          <SettingsItem icon={<Shield size={18} />} label="プライバシー" onClick={() => alert('プライバシー設定は現在開発中です')} />
-          <SettingsItem icon={<Moon size={18} />} label="ダークモード" value="ON" onClick={() => alert('ダークモードは現在固定です')} />
+          <SettingsItem 
+            icon={<Bell size={18} />} 
+            label="通知設定" 
+            value={user?.notifications_enabled ? "ON" : "OFF"}
+            onClick={toggleNotifications} 
+          />
+          <SettingsItem 
+            icon={<Shield size={18} />} 
+            label="プライバシー" 
+            onClick={() => setIsHelpModalOpen(true)} 
+          />
+          <SettingsItem 
+            icon={<Moon size={18} />} 
+            label="ダークモード" 
+            value="ON" 
+            onClick={() => {}} 
+          />
         </div>
       </div>
 
@@ -63,9 +84,55 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
         <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
           <SettingsItem icon={<Smartphone size={18} />} label="バージョン" value="1.0.0" />
           <SettingsItem icon={<Globe size={18} />} label="言語" value="日本語" />
-          <SettingsItem icon={<Info size={18} />} label="ヘルプ & サポート" onClick={() => alert('サポート窓口へお問い合わせください')} />
+          <SettingsItem 
+            icon={<Info size={18} />} 
+            label="ヘルプ & サポート" 
+            onClick={() => setIsHelpModalOpen(true)} 
+          />
         </div>
       </div>
+
+      {/* Help Modal */}
+      <AnimatePresence>
+        {isHelpModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsHelpModalOpen(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-black uppercase tracking-tight">ヘルプ & サポート</h3>
+                <button onClick={() => setIsHelpModalOpen(false)} className="text-zinc-500 hover:text-white">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="space-y-4 text-sm text-zinc-400">
+                <p>PeakPhysiqueをご利用いただきありがとうございます。</p>
+                <p>使い方がわからない場合や不具合がある場合は、以下のサポート窓口までご連絡ください。</p>
+                <div className="bg-zinc-800 p-4 rounded-xl border border-zinc-700">
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase mb-1">Email Support</div>
+                  <div className="text-white font-bold">support@peakphysique.app</div>
+                </div>
+                <button 
+                  onClick={() => setIsHelpModalOpen(false)}
+                  className="w-full bg-amber-500 text-black font-black py-3 rounded-xl uppercase tracking-widest mt-4"
+                >
+                  閉じる
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <div className="space-y-4">
         <h3 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest px-2">危険な操作</h3>

@@ -251,7 +251,7 @@ export default function ProgressScreen() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪率 (任意 %)</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪率 (%)</label>
                     <input 
                       type="number" 
                       step="0.1"
@@ -263,7 +263,7 @@ export default function ProgressScreen() {
                   </div>
                   <button 
                     onClick={handleAddMeasurement}
-                    disabled={isSaving || !newWeight}
+                    disabled={isSaving || !newWeight || !newBodyFat}
                     className="w-full bg-amber-500 text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
                   >
                     {isSaving ? '保存中...' : '保存する'}

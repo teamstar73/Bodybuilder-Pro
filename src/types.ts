@@ -20,8 +20,11 @@ export interface User {
   diet_type: DietType;
   training_experience: TrainingExperience;
   goal_weight_kg?: number;
+  goal_body_fat_pct?: number;
   allergies: string[];
   competition_date?: string;
+  competition_name?: string;
+  notifications_enabled?: boolean;
   fasting_window?: string; // e.g. "16:8"
 }
 

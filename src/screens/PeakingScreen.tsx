@@ -12,6 +12,18 @@ export default function PeakingScreen() {
   const { user, updateUser, peakingProtocol, markDayComplete, getDaysToCompetition } = useAppStore();
   const daysToComp = getDaysToCompetition();
 
+  // Calculate today's protocol day based on the competition date
+  const currentDayOffset = daysToComp !== null ? -daysToComp : 0;
+  const todayProtocol = peakingProtocol.find(p => p.day_offset === currentDayOffset);
+
+  const [isEditingName, setIsEditingName] = React.useState(false);
+  const [newName, setNewName] = React.useState(user?.competition_name || 'All Japan Championships');
+
+  const handleUpdateName = () => {
+    updateUser({ competition_name: newName });
+    setIsEditingName(false);
+  };
+
   if (!user?.competition_date) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
@@ -34,11 +46,6 @@ export default function PeakingScreen() {
     );
   }
 
-  // Find today's protocol day (mocking for demo, usually based on date diff)
-  // Let's assume we are at D-5 for the demo visual
-  const currentDayOffset = -5;
-  const todayProtocol = peakingProtocol.find(p => p.day_offset === currentDayOffset);
-
   return (
     <div className="space-y-6 pb-24">
       {/* Countdown Hero */}
@@ -47,15 +54,35 @@ export default function PeakingScreen() {
         <div className="text-[8rem] font-black leading-none text-amber-500 tracking-tighter tabular-nums">
           D-{daysToComp !== null ? Math.max(0, daysToComp) : '?'}
         </div>
-        <div className="text-center mt-2">
-          <h2 className="text-lg font-black uppercase tracking-tight">All Japan Championships</h2>
-          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mt-1">Peak Week Day 2</p>
+        <div className="text-center mt-2 group cursor-pointer" onClick={() => setIsEditingName(true)}>
+          {isEditingName ? (
+            <div className="flex items-center gap-2">
+              <input 
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onBlur={handleUpdateName}
+                onKeyDown={(e) => e.key === 'Enter' && handleUpdateName()}
+                autoFocus
+                className="bg-zinc-800 border border-amber-500 rounded px-2 py-1 text-sm font-black uppercase outline-none"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-2">
+              <h2 className="text-lg font-black uppercase tracking-tight">{user.competition_name || 'All Japan Championships'}</h2>
+              <Edit3 size={12} className="text-zinc-600 group-hover:text-amber-500 transition-colors" />
+            </div>
+          )}
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] mt-1">
+            {currentDayOffset === 0 ? 'Competition Day' : `Peak Week Day ${7 + currentDayOffset}`}
+          </p>
         </div>
         
         <div className="w-full mt-8 bg-teal-500/10 border-l-4 border-teal-500 p-4 flex items-center justify-between">
           <div>
             <div className="text-[10px] font-bold text-teal-500 uppercase tracking-widest">Active Phase</div>
-            <div className="font-bold text-sm text-teal-500">カーボローディング中</div>
+            <div className="font-bold text-sm text-teal-500">
+              {todayProtocol?.label || '調整中'}
+            </div>
           </div>
           <Bolt className="text-teal-500" size={20} />
         </div>
@@ -117,7 +144,7 @@ export default function PeakingScreen() {
             <div className="w-10 text-center font-black text-sm text-amber-500">SHOW</div>
             <div className="flex-1 flex items-center justify-between">
               <div>
-                <div className="text-xs font-black uppercase tracking-widest">Grand Finals</div>
+                <div className="text-xs font-black uppercase tracking-widest">{user.competition_name || 'Grand Finals'}</div>
                 <div className="text-[9px] font-bold text-amber-500/70 uppercase">Peak Conditioning Achieved</div>
               </div>
               <Trophy className="text-amber-500" size={24} />
@@ -126,7 +153,10 @@ export default function PeakingScreen() {
         </div>
       </section>
 
-      <button className="w-full bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl shadow-amber-500/10">
+      <button 
+        onClick={() => window.location.hash = '#progress'}
+        className="w-full bg-amber-500 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl shadow-amber-500/10"
+      >
         <Edit3 size={18} /> UPDATE TODAY'S MEASUREMENTS
       </button>
     </div>

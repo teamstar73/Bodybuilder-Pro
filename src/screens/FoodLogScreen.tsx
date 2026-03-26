@@ -25,6 +25,8 @@ export default function FoodLogScreen() {
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
 
+  const [isBarcodeModalOpen, setIsBarcodeModalOpen] = useState(false);
+
   const targetMacros = getTargetMacros();
 
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -43,6 +45,30 @@ export default function FoodLogScreen() {
     { id: 'dinner', label: '夕食', icon: '🌙' },
     { id: 'snack', label: '間食', icon: '🍎' },
   ] as const;
+
+  const handleBarcodeScan = () => {
+    setIsBarcodeModalOpen(true);
+    // Mock scan after 1.5 seconds
+    setTimeout(() => {
+      const mockItems = [
+        { name: 'プロテインバー (Scanned)', cal: '200', p: '20', c: '15', f: '8', g: '50' },
+        { name: 'ギリシャヨーグルト (Scanned)', cal: '100', p: '18', c: '6', f: '0', g: '150' },
+        { name: 'サラダチキン (Scanned)', cal: '120', p: '25', c: '1', f: '2', g: '110' },
+        { name: 'モンスターエナジー (Scanned)', cal: '0', p: '0', c: '0', f: '0', g: '355' },
+        { name: 'オートミール (Scanned)', cal: '150', p: '5', c: '27', f: '3', g: '40' },
+      ];
+      const selected = mockItems[Math.floor(Math.random() * mockItems.length)];
+      
+      setFoodName(selected.name);
+      setCalories(selected.cal);
+      setProtein(selected.p);
+      setCarbs(selected.c);
+      setFat(selected.f);
+      setAmountG(selected.g);
+      setIsBarcodeModalOpen(false);
+      setIsAddModalOpen(true);
+    }, 1500);
+  };
 
   const handleAddFood = async () => {
     if (!foodName || !amountG || !calories) return;
@@ -126,7 +152,12 @@ export default function FoodLogScreen() {
           onClick={() => setIsAddModalOpen(true)}
           readOnly
         />
-        <Barcode className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-500" size={20} />
+        <button 
+          onClick={(e) => { e.stopPropagation(); handleBarcodeScan(); }}
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-amber-500 hover:scale-110 transition-transform"
+        >
+          <Barcode size={20} />
+        </button>
       </div>
 
       {/* Meal Sections */}
@@ -318,6 +349,47 @@ export default function FoodLogScreen() {
               </button>
             </motion.div>
           </>
+        )}
+      </AnimatePresence>
+
+      {/* Barcode Scanner Modal */}
+      <AnimatePresence>
+        {isBarcodeModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative w-full max-w-sm aspect-[3/4] border-2 border-amber-500 rounded-3xl overflow-hidden flex flex-col items-center justify-center"
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <div className="w-64 h-40 border-2 border-amber-500/50 rounded-lg relative overflow-hidden">
+                  <motion.div 
+                    animate={{ top: ['0%', '100%', '0%'] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className="absolute left-0 right-0 h-0.5 bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+                  />
+                </div>
+                <div className="mt-8 text-center">
+                  <div className="text-lg font-black uppercase tracking-widest text-white">Scanning...</div>
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-2">Align barcode within the frame</div>
+                </div>
+              </div>
+              
+              <button 
+                onClick={() => setIsBarcodeModalOpen(false)}
+                className="absolute top-6 right-6 text-white/50 hover:text-white"
+              >
+                <X size={24} />
+              </button>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
