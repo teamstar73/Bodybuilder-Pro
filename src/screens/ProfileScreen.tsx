@@ -77,7 +77,7 @@ export default function ProfileScreen() {
     <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col items-center gap-4 py-6">
         <div className="relative">
-          <div className="w-24 h-24 rounded-full border-4 border-amber-500 p-1 overflow-hidden shadow-2xl shadow-amber-500/20">
+          <div className="w-24 h-24 rounded-full border-2 border-accent p-1 overflow-hidden shadow-2xl shadow-accent/10">
             <img 
               src="https://picsum.photos/seed/user/200/200" 
               alt="Profile" 
@@ -92,10 +92,10 @@ export default function ProfileScreen() {
             onClick={() => setIsEditingPhase(true)}
             className="flex items-center gap-2 mx-auto mt-1 group"
           >
-            <div className="text-[10px] font-bold text-amber-500 uppercase tracking-[0.2em]">
+            <div className="text-[10px] font-bold text-accent uppercase tracking-[0.2em]">
               {user.phase} PHASE
             </div>
-            <Edit2 size={10} className="text-amber-500 opacity-50 group-hover:opacity-100 transition-opacity" />
+            <Edit2 size={10} className="text-accent opacity-50 group-hover:opacity-100 transition-opacity" />
           </button>
         </div>
       </div>
@@ -115,11 +115,11 @@ export default function ProfileScreen() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-x-4 top-[20%] bg-zinc-950 border border-zinc-800 rounded-3xl p-6 z-[110] max-w-sm mx-auto"
+              className="fixed inset-x-4 top-[20%] bg-surface border border-border rounded-3xl p-6 z-[110] max-w-sm mx-auto"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-black uppercase tracking-tight">目標フェーズを変更</h3>
-                <button onClick={() => setIsEditingPhase(false)} className="text-zinc-500">
+                <button onClick={() => setIsEditingPhase(false)} className="text-text-muted">
                   <X size={20} />
                 </button>
               </div>
@@ -130,14 +130,14 @@ export default function ProfileScreen() {
                     onClick={() => handlePhaseChange(p.id)}
                     className={cn(
                       "w-full p-4 rounded-xl border text-left transition-all flex justify-between items-center",
-                      user.phase === p.id ? "bg-amber-500/10 border-amber-500" : "bg-zinc-900 border-zinc-800"
+                      user.phase === p.id ? "bg-accent text-black border-accent" : "bg-surface-alt border-border"
                     )}
                   >
                     <div>
-                      <div className={cn("font-bold", user.phase === p.id ? "text-amber-500" : "text-white")}>{p.label}</div>
-                      <div className="text-[10px] text-zinc-500 uppercase tracking-widest">{p.desc}</div>
+                      <div className={cn("font-bold", user.phase === p.id ? "text-black" : "text-white")}>{p.label}</div>
+                      <div className={cn("text-[10px] uppercase tracking-widest", user.phase === p.id ? "text-black/60" : "text-text-muted")}>{p.desc}</div>
                     </div>
-                    {user.phase === p.id && <Check className="text-amber-500" size={20} />}
+                    {user.phase === p.id && <Check className="text-black" size={20} />}
                   </button>
                 ))}
               </div>
@@ -161,11 +161,11 @@ export default function ProfileScreen() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-x-4 top-[20%] bg-zinc-950 border border-zinc-800 rounded-3xl p-6 z-[110] max-w-sm mx-auto"
+              className="fixed inset-x-4 top-[20%] bg-surface border border-border rounded-3xl p-6 z-[110] max-w-sm mx-auto"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-black uppercase tracking-tight">食事スタイルを変更</h3>
-                <button onClick={() => setIsEditingDiet(false)} className="text-zinc-500">
+                <button onClick={() => setIsEditingDiet(false)} className="text-text-muted">
                   <X size={20} />
                 </button>
               </div>
@@ -176,7 +176,7 @@ export default function ProfileScreen() {
                     onClick={() => handleDietChange(d.id)}
                     className={cn(
                       "p-4 rounded-xl border text-center transition-all",
-                      user.diet_type === d.id ? "bg-amber-500/10 border-amber-500 text-amber-500" : "bg-zinc-900 border-zinc-800 text-white"
+                      user.diet_type === d.id ? "bg-accent border-accent text-black" : "bg-surface-alt border-border text-white"
                     )}
                   >
                     <div className="font-bold text-sm">{d.label}</div>
@@ -203,11 +203,11 @@ export default function ProfileScreen() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-x-4 top-[20%] bg-zinc-950 border border-zinc-800 rounded-3xl p-6 z-[110] max-w-sm mx-auto"
+              className="fixed inset-x-4 top-[20%] bg-surface border border-border rounded-3xl p-6 z-[110] max-w-sm mx-auto"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-black uppercase tracking-tight">トレーニング歴を変更</h3>
-                <button onClick={() => setIsEditingExperience(false)} className="text-zinc-500">
+                <button onClick={() => setIsEditingExperience(false)} className="text-text-muted">
                   <X size={20} />
                 </button>
               </div>
@@ -218,11 +218,11 @@ export default function ProfileScreen() {
                     onClick={() => handleExperienceChange(e.id)}
                     className={cn(
                       "w-full p-4 rounded-xl border text-left transition-all flex justify-between items-center",
-                      user.training_experience === e.id ? "bg-amber-500/10 border-amber-500" : "bg-zinc-900 border-zinc-800"
+                      user.training_experience === e.id ? "bg-accent text-black border-accent" : "bg-surface-alt border-border"
                     )}
                   >
-                    <div className={cn("font-bold", user.training_experience === e.id ? "text-amber-500" : "text-white")}>{e.label}</div>
-                    {user.training_experience === e.id && <Check className="text-amber-500" size={20} />}
+                    <div className={cn("font-bold", user.training_experience === e.id ? "text-black" : "text-white")}>{e.label}</div>
+                    {user.training_experience === e.id && <Check className="text-black" size={20} />}
                   </button>
                 ))}
               </div>
@@ -246,14 +246,14 @@ export default function ProfileScreen() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="fixed inset-x-4 top-[30%] bg-zinc-950 border border-zinc-800 rounded-3xl p-6 z-[110] max-w-sm mx-auto"
+              className="fixed inset-x-4 top-[30%] bg-surface border border-border rounded-3xl p-6 z-[110] max-w-sm mx-auto"
             >
               <h3 className="text-lg font-black uppercase tracking-tight mb-4">{editingField.label}を編集</h3>
               <form onSubmit={handleUpdateField} className="space-y-4">
                 <input 
                   type={typeof editingField.value === 'number' ? 'number' : 'text'}
                   step="0.1"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-white outline-none focus:border-amber-500"
+                  className="w-full bg-surface-alt border border-border-light rounded-xl p-4 text-white outline-none focus:border-accent"
                   value={editingField.value === null || editingField.value === undefined || (typeof editingField.value === 'number' && isNaN(editingField.value)) ? '' : editingField.value}
                   onChange={(e) => setEditingField({ ...editingField, value: e.target.value })}
                   autoFocus
@@ -262,13 +262,13 @@ export default function ProfileScreen() {
                   <button 
                     type="button"
                     onClick={() => setEditingField(null)}
-                    className="flex-1 h-12 rounded-xl bg-zinc-900 border border-zinc-800 font-bold"
+                    className="flex-1 h-12 rounded-xl bg-surface-alt border border-border font-bold"
                   >
                     キャンセル
                   </button>
                   <button 
                     type="submit"
-                    className="flex-1 h-12 rounded-xl bg-amber-500 text-black font-black"
+                    className="flex-1 h-12 rounded-xl bg-accent text-black font-black"
                   >
                     保存
                   </button>
@@ -280,8 +280,8 @@ export default function ProfileScreen() {
       </AnimatePresence>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">基本情報</h3>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">基本情報</h3>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
           <ProfileItem 
             icon={<UserIcon size={18} />} 
             label="名前" 
@@ -316,8 +316,8 @@ export default function ProfileScreen() {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">目標・設定</h3>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">目標・設定</h3>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
           <ProfileItem 
             icon={<Target size={18} />} 
             label="目標体重" 
@@ -369,17 +369,17 @@ function ProfileItem({
     <div 
       onClick={onClick}
       className={cn(
-        "flex items-center justify-between p-4 border-b border-zinc-800 last:border-0 transition-colors",
-        onClick && "hover:bg-zinc-800/50 cursor-pointer"
+        "flex items-center justify-between p-4 border-b border-border last:border-0 transition-colors",
+        onClick && "hover:bg-surface-high/50 cursor-pointer"
       )}
     >
-      <div className="flex items-center gap-3 text-zinc-400">
+      <div className="flex items-center gap-3 text-text-muted">
         {icon}
         <span className="text-sm font-bold">{label}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="text-sm font-black text-white">{value}</span>
-        {onClick && <Edit2 size={12} className="text-zinc-600" />}
+        {onClick && <Edit2 size={12} className="text-text-faint" />}
       </div>
     </div>
   );

@@ -53,27 +53,27 @@ export default function FriendsScreen() {
       <header className="flex justify-between items-end px-1">
         <div>
           <h1 className="text-4xl font-black uppercase tracking-tighter leading-none">Friends</h1>
-          <p className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest mt-2">Connect & Track Progress</p>
+          <p className="text-text-muted text-[10px] font-bold uppercase tracking-widest mt-2">Connect & Track Progress</p>
         </div>
-        <Users className="text-amber-500" size={32} />
+        <Users className="text-accent" size={32} />
       </header>
 
       {/* Search Section */}
-      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Find Users</h3>
+      <section className="bg-surface border border-border rounded-2xl p-5 space-y-4">
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted">Find Users</h3>
         <form onSubmit={handleSearch} className="relative">
           <input 
             type="email" 
             placeholder="Search by email..."
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-amber-500 transition-all"
+            className="w-full bg-surface-alt border border-border-light rounded-xl py-3 pl-10 pr-4 text-sm text-white outline-none focus:border-accent transition-all"
             value={searchEmail}
             onChange={(e) => setSearchEmail(e.target.value)}
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
           <button 
             type="submit"
             disabled={isSearching}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-amber-500 text-black p-1.5 rounded-lg hover:scale-105 transition-transform disabled:opacity-50"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-accent text-black p-1.5 rounded-lg hover:scale-105 transition-transform disabled:opacity-50"
           >
             <ArrowRight size={16} />
           </button>
@@ -88,16 +88,16 @@ export default function FriendsScreen() {
               className="space-y-2 pt-2"
             >
               {searchResults.map(result => (
-                <div key={result.uid} className="flex items-center justify-between p-3 bg-zinc-800 rounded-xl border border-zinc-700">
+                <div key={result.uid} className="flex items-center justify-between p-3 bg-surface-alt rounded-xl border border-border-light">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-zinc-700 flex items-center justify-center font-bold text-xs uppercase">
+                    <div className="w-8 h-8 rounded-full bg-surface-high flex items-center justify-center font-bold text-xs uppercase">
                       {result.name.charAt(0)}
                     </div>
                     <span className="text-sm font-bold">{result.name}</span>
                   </div>
                   <button 
                     onClick={() => { sendFriendRequest(result.uid); setSearchResults([]); setSearchEmail(''); }}
-                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-amber-500 text-black px-3 py-1.5 rounded-lg hover:scale-105 transition-transform"
+                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest bg-accent text-black px-3 py-1.5 rounded-lg hover:scale-105 transition-transform"
                   >
                     <UserPlus size={14} /> Add
                   </button>
@@ -111,29 +111,29 @@ export default function FriendsScreen() {
       {/* Requests Section */}
       {friendRequests.length > 0 && (
         <section className="space-y-4">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 px-1">Pending Requests</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted px-1">Pending Requests</h3>
           <div className="space-y-3">
             {friendRequests.map(request => (
-              <div key={request.id} className="flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-2xl">
+              <div key={request.id} className="flex items-center justify-between p-4 bg-surface border border-border rounded-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/10 flex items-center justify-center font-bold text-amber-500">
+                  <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center font-bold text-accent">
                     {request.fromName.charAt(0)}
                   </div>
                   <div>
                     <div className="text-sm font-bold">{request.fromName}</div>
-                    <div className="text-[10px] text-zinc-500 uppercase font-medium">Wants to be friends</div>
+                    <div className="text-[10px] text-text-muted uppercase font-medium">Wants to be friends</div>
                   </div>
                 </div>
                 <div className="flex gap-2">
                   <button 
                     onClick={() => acceptFriendRequest(request.id)}
-                    className="p-2 bg-teal-500/10 text-teal-500 rounded-xl hover:bg-teal-500 hover:text-white transition-all"
+                    className="p-2 bg-accent text-black rounded-xl hover:scale-105 transition-all"
                   >
                     <Check size={18} />
                   </button>
                   <button 
                     onClick={() => rejectFriendRequest(request.id)}
-                    className="p-2 bg-rose-500/10 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition-all"
+                    className="p-2 bg-surface-alt text-text-muted rounded-xl hover:text-white transition-all"
                   >
                     <X size={18} />
                   </button>
@@ -146,28 +146,28 @@ export default function FriendsScreen() {
 
       {/* Friends List */}
       <section className="space-y-4">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 px-1">Your Friends ({friends.length})</h3>
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted px-1">Your Friends ({friends.length})</h3>
         <div className="grid gap-3">
           {friends.map(friend => (
             <div 
               key={friend.uid} 
-              className="group flex items-center justify-between p-4 bg-zinc-900 border border-zinc-800 rounded-2xl hover:border-zinc-700 transition-all cursor-pointer"
+              className="group flex items-center justify-between p-4 bg-surface border border-border rounded-2xl hover:border-border-light transition-all cursor-pointer"
               onClick={() => viewFriendProgress(friend)}
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-black text-zinc-500 group-hover:text-amber-500 transition-colors">
+                <div className="w-12 h-12 rounded-full bg-surface-alt border border-border-light flex items-center justify-center font-black text-text-faint group-hover:text-accent transition-colors">
                   {friend.name.charAt(0)}
                 </div>
                 <div>
                   <div className="text-base font-bold">{friend.name}</div>
-                  <div className="text-[10px] text-zinc-500 uppercase font-medium">Added {new Date(friend.addedAt).toLocaleDateString('ja-JP')}</div>
+                  <div className="text-[10px] text-text-muted uppercase font-medium">Added {new Date(friend.addedAt).toLocaleDateString('ja-JP')}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                <TrendingUp size={20} className="text-zinc-700 group-hover:text-amber-500 transition-colors" />
+                <TrendingUp size={20} className="text-text-faint group-hover:text-accent transition-colors" />
                 <button 
                   onClick={(e) => { e.stopPropagation(); removeFriend(friend.uid); }}
-                  className="p-2 text-zinc-700 hover:text-rose-500 transition-colors"
+                  className="p-2 text-text-faint hover:text-text-muted transition-colors"
                 >
                   <X size={18} />
                 </button>
@@ -176,9 +176,9 @@ export default function FriendsScreen() {
           ))}
 
           {friends.length === 0 && (
-            <div className="py-12 text-center bg-zinc-900 border border-zinc-800 rounded-2xl">
-              <Users className="mx-auto text-zinc-800 mb-2" size={32} />
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">No friends added yet</p>
+            <div className="py-12 text-center bg-surface border border-border rounded-2xl">
+              <Users className="mx-auto text-text-faint mb-2" size={32} />
+              <p className="text-xs text-text-muted font-bold uppercase tracking-widest">No friends added yet</p>
             </div>
           )}
         </div>
@@ -199,21 +199,21 @@ export default function FriendsScreen() {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="relative w-full max-w-lg bg-zinc-900 border border-zinc-800 rounded-t-[32px] sm:rounded-[32px] p-8 overflow-hidden"
+              className="relative w-full max-w-lg bg-surface border border-border rounded-t-[32px] sm:rounded-[32px] p-8 overflow-hidden"
             >
               <div className="flex justify-between items-start mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-2xl font-black text-amber-500">
+                  <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center text-2xl font-black text-accent">
                     {selectedFriend.name.charAt(0)}
                   </div>
                   <div>
                     <h2 className="text-2xl font-black uppercase tracking-tight">{selectedFriend.name}</h2>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">Friend's Progress</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Friend's Progress</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setSelectedFriend(null)}
-                  className="p-2 bg-zinc-800 rounded-full text-zinc-400 hover:text-white transition-colors"
+                  className="p-2 bg-surface-alt rounded-full text-text-muted hover:text-white transition-colors"
                 >
                   <X size={20} />
                 </button>
@@ -222,23 +222,23 @@ export default function FriendsScreen() {
               {friendData ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-zinc-800/50 p-4 rounded-2xl border border-zinc-800">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Current Weight</div>
-                      <div className="text-xl font-black">{friendData.weight_kg} <span className="text-xs font-normal text-zinc-500">kg</span></div>
+                    <div className="bg-surface-alt p-4 rounded-2xl border border-border">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Current Weight</div>
+                      <div className="text-xl font-black">{friendData.weight_kg} <span className="text-xs font-normal text-text-muted">kg</span></div>
                     </div>
-                    <div className="bg-zinc-800/50 p-4 rounded-2xl border border-zinc-800">
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">Body Fat</div>
+                    <div className="bg-surface-alt p-4 rounded-2xl border border-border">
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Body Fat</div>
                       <div className="text-xl font-black">{friendData.body_fat_pct}%</div>
                     </div>
                   </div>
 
-                  <div className="bg-zinc-800/50 p-5 rounded-2xl border border-zinc-800 space-y-4">
+                  <div className="bg-surface-alt p-5 rounded-2xl border border-border space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Phase</span>
-                      <span className="text-xs font-black uppercase px-2 py-1 bg-amber-500 text-black rounded-md">{friendData.phase}</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-text-muted">Phase</span>
+                      <span className="text-xs font-black uppercase px-2 py-1 bg-accent text-black rounded-md">{friendData.phase}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">Diet Type</span>
+                      <span className="text-xs font-bold uppercase tracking-widest text-text-muted">Diet Type</span>
                       <span className="text-xs font-black uppercase text-white">{friendData.diet_type}</span>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export default function FriendsScreen() {
                   <div className="pt-4">
                     <button 
                       onClick={() => setSelectedFriend(null)}
-                      className="w-full py-4 bg-zinc-800 text-white font-black uppercase tracking-widest rounded-xl hover:bg-zinc-700 transition-colors"
+                      className="w-full py-4 bg-surface-alt text-white font-black uppercase tracking-widest rounded-xl hover:bg-surface-high transition-colors"
                     >
                       Close
                     </button>
@@ -254,7 +254,7 @@ export default function FriendsScreen() {
                 </div>
               ) : (
                 <div className="py-20 text-center">
-                  <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full mx-auto" />
+                  <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto" />
                 </div>
               )}
             </motion.div>

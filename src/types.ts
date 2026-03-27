@@ -29,6 +29,18 @@ export interface User {
   fasting_window?: string; // e.g. "16:8"
 }
 
+export interface Micronutrients {
+  vitamin_d_iu?: number;
+  magnesium_mg?: number;
+  zinc_mg?: number;
+  iron_mg?: number;
+  calcium_mg?: number;
+  potassium_mg?: number;
+  vitamin_b12_ug?: number;
+  vitamin_c_mg?: number;
+  omega3_mg?: number;
+}
+
 export interface FoodEntry {
   id: string | number;
   date: string;
@@ -39,6 +51,17 @@ export interface FoodEntry {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  micronutrients?: Micronutrients;
+  // Legacy fields (optional for backward compatibility)
+  vitamin_d_ug?: number;
+  magnesium_mg?: number;
+  zinc_mg?: number;
+  iron_mg?: number;
+  calcium_mg?: number;
+  potassium_mg?: number;
+  vitamin_b12_ug?: number;
+  vitamin_c_mg?: number;
+  omega_3_mg?: number;
 }
 
 export interface Measurement {
@@ -51,16 +74,29 @@ export interface Measurement {
   notes?: string;
 }
 
+export interface FrequentFood {
+  name: string;
+  cal: number;
+  p: number;
+  c: number;
+  f: number;
+  count: number;
+  micronutrients?: Micronutrients;
+}
+
 export interface Supplement {
   id: string | number;
   name: string;
   dose_g: number;
+  upper_dose_g?: number;
   timing: string;
-  frequency: string;
-  evidence_level: 'A' | 'B' | 'C';
+  evidence: 'A' | 'B' | 'C';
+  mechanism?: string;
+  synergy?: string;
+  contraindication?: string;
   stock_days_remaining: number;
   is_active: boolean;
-  taken_dates: string[]; // ISO dates
+  taken_dates: string[]; // ISO dates (YYYY-MM-DD)
 }
 
 export interface PeakDay {

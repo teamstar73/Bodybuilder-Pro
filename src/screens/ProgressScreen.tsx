@@ -4,6 +4,7 @@
  */
 
 import React, { useState } from 'react';
+import { colors } from '../constants/theme';
 import { useAppStore } from '../store/useAppStore';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Scale, Droplets, Dumbbell, TrendingDown, TrendingUp, Camera, Plus, X } from 'lucide-react';
@@ -86,7 +87,7 @@ export default function ProgressScreen() {
     <div className="space-y-6 pb-24">
       <div className="flex items-baseline justify-between">
         <h2 className="text-2xl font-black uppercase tracking-tight">PROGRESS</h2>
-        <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em]">Clinical View</span>
+        <span className="text-[10px] font-bold text-text-faint uppercase tracking-[0.2em]">Clinical View</span>
       </div>
 
       {/* Metrics Grid */}
@@ -97,51 +98,51 @@ export default function ProgressScreen() {
       </div>
 
       {/* Weight Chart */}
-      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between bg-zinc-800/50">
+      <section className="bg-surface border border-border rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 flex items-center justify-between bg-surface-alt/50">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-4 bg-amber-500" />
+            <div className="w-1 h-4 bg-accent" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Weight Log Analysis</h3>
           </div>
-          <div className="flex gap-1 bg-zinc-900 p-1 rounded-lg">
-            <button className="px-3 py-1 text-[10px] font-bold bg-amber-500 text-black rounded transition-all">ALL</button>
+          <div className="flex gap-1 bg-surface p-1 rounded-lg">
+            <button className="px-3 py-1 text-[10px] font-bold bg-accent text-black rounded transition-all">ALL</button>
           </div>
         </div>
         <div className="p-6 h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={displayData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1A1A1A" vertical={false} />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#525252' }} />
-              <YAxis domain={['dataMin - 1', 'dataMax + 1']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#525252' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={colors.border} vertical={false} />
+              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: colors.textFaint }} />
+              <YAxis domain={['dataMin - 1', 'dataMax + 1']} axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: colors.textFaint }} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '8px' }}
-                itemStyle={{ color: '#F59E0B', fontWeight: 'bold' }}
+                contentStyle={{ backgroundColor: colors.surface, border: `1px solid ${colors.border}`, borderRadius: '8px' }}
+                itemStyle={{ color: colors.accent, fontWeight: 'bold' }}
               />
-              <Line type="monotone" dataKey="weight" stroke="#F59E0B" strokeWidth={3} dot={{ fill: '#F59E0B', r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="weight" stroke={colors.accent} strokeWidth={3} dot={{ fill: colors.accent, r: 4 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </section>
 
       {/* Composition Chart */}
-      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between bg-zinc-800/50">
+      <section className="bg-surface border border-border rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 flex items-center justify-between bg-surface-alt/50">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-4 bg-teal-500" />
+            <div className="w-1 h-4 bg-accent-light" />
             <h3 className="text-[10px] font-black uppercase tracking-widest">Composition Variance</h3>
           </div>
-          <span className="text-[9px] font-bold text-teal-500 uppercase tracking-widest">Target: {user?.goal_weight_kg || 0}kg</span>
+          <span className="text-[9px] font-bold text-accent-light uppercase tracking-widest">Target: {user?.goal_weight_kg || 0}kg</span>
         </div>
         <div className="p-6 h-40">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={displayData}>
               <defs>
                 <linearGradient id="colorComp" x1="0" y1="0" x2="0" y2="100%">
-                  <stop offset="5%" stopColor="#14B8A6" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#14B8A6" stopOpacity={0}/>
+                  <stop offset="5%" stopColor={colors.accentLight} stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor={colors.accentLight} stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <Area type="monotone" dataKey="weight" stroke="#14B8A6" fillOpacity={1} fill="url(#colorComp)" />
+              <Area type="monotone" dataKey="weight" stroke={colors.accentLight} fillOpacity={1} fill="url(#colorComp)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -154,13 +155,13 @@ export default function ProgressScreen() {
           <div className="flex gap-3">
             <button 
               onClick={() => { setModalType('measurement'); setIsModalOpen(true); }}
-              className="flex items-center gap-1 text-amber-500 text-[10px] font-bold uppercase tracking-widest hover:underline"
+              className="flex items-center gap-1 text-accent text-[10px] font-bold uppercase tracking-widest hover:underline"
             >
               <Plus size={14} /> Weight
             </button>
             <button 
               onClick={() => { setModalType('visual'); setIsModalOpen(true); }}
-              className="flex items-center gap-1 text-amber-500 text-[10px] font-bold uppercase tracking-widest hover:underline"
+              className="flex items-center gap-1 text-accent text-[10px] font-bold uppercase tracking-widest hover:underline"
             >
               <Camera size={14} /> Photo
             </button>
@@ -168,13 +169,13 @@ export default function ProgressScreen() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           {visualLog.length === 0 ? (
-            <div className="col-span-2 py-12 text-center bg-zinc-900 border border-zinc-800 rounded-2xl">
-              <Camera className="mx-auto text-zinc-700 mb-2" size={32} />
-              <p className="text-xs text-zinc-500 font-bold uppercase tracking-widest">No photos logged yet</p>
+            <div className="col-span-2 py-12 text-center bg-surface border border-border rounded-2xl">
+              <Camera className="mx-auto text-text-faint mb-2" size={32} />
+              <p className="text-xs text-text-muted font-bold uppercase tracking-widest">No photos logged yet</p>
             </div>
           ) : (
             visualLog.slice(-4).map((entry, i) => (
-              <div key={entry.id} className="aspect-[3/4] rounded-xl bg-zinc-900 border border-zinc-800 relative overflow-hidden group">
+              <div key={entry.id} className="aspect-[3/4] rounded-xl bg-surface border border-border relative overflow-hidden group">
                 <img 
                   src={entry.image_url} 
                   alt={entry.label} 
@@ -184,13 +185,13 @@ export default function ProgressScreen() {
                 <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button 
                     onClick={() => removeVisualLogEntry(entry.id)}
-                    className="p-2 bg-black/50 backdrop-blur-md rounded-full text-rose-500 hover:bg-rose-500 hover:text-white transition-all"
+                    className="p-2 bg-black/50 backdrop-blur-md rounded-full text-accent hover:bg-accent hover:text-black transition-all"
                   >
                     <X size={14} />
                   </button>
                 </div>
                 <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-black/80 to-transparent">
-                  <div className="text-[10px] font-black uppercase text-zinc-400">{entry.label}</div>
+                  <div className="text-[10px] font-black uppercase text-text-muted">{entry.label}</div>
                   <div className="text-sm font-bold">{new Date(entry.date).toLocaleDateString('ja-JP')}</div>
                 </div>
               </div>
@@ -203,7 +204,7 @@ export default function ProgressScreen() {
       <section className="space-y-4">
         <button 
           onClick={() => setShowHistory(!showHistory)}
-          className="w-full py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors"
+          className="w-full py-3 bg-surface border border-border rounded-xl text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted hover:text-white transition-colors"
         >
           {showHistory ? 'Hide History' : 'Show Full History'}
         </button>
@@ -216,27 +217,27 @@ export default function ProgressScreen() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden space-y-4"
             >
-              <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                <div className="px-4 py-3 bg-zinc-800/50 border-b border-zinc-800 flex justify-between items-center">
+              <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 bg-surface-alt/50 border-b border-border flex justify-between items-center">
                   <span className="text-[10px] font-black uppercase tracking-widest">Measurement History</span>
                 </div>
-                <div className="divide-y divide-zinc-800">
+                <div className="divide-y divide-border">
                   {measurements.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(m => (
                     <div key={m.id} className="p-4 flex justify-between items-center">
                       <div>
-                        <div className="text-sm font-bold">{m.weight_kg} kg <span className="text-zinc-500 text-xs font-normal">/ {m.body_fat_pct}% BF</span></div>
-                        <div className="text-[10px] text-zinc-500 uppercase">{new Date(m.date).toLocaleDateString('ja-JP')}</div>
+                        <div className="text-sm font-bold">{m.weight_kg} kg <span className="text-text-muted text-xs font-normal">/ {m.body_fat_pct}% BF</span></div>
+                        <div className="text-[10px] text-text-muted uppercase">{new Date(m.date).toLocaleDateString('ja-JP')}</div>
                       </div>
                       <button 
                         onClick={() => removeMeasurement(m.id)}
-                        className="p-2 text-zinc-600 hover:text-rose-500 transition-colors"
+                        className="p-2 text-text-faint hover:text-accent transition-colors"
                       >
                         <X size={16} />
                       </button>
                     </div>
                   ))}
                   {measurements.length === 0 && (
-                    <div className="p-8 text-center text-zinc-500 text-xs font-bold uppercase tracking-widest">No history found</div>
+                    <div className="p-8 text-center text-text-muted text-xs font-bold uppercase tracking-widest">No history found</div>
                   )}
                 </div>
               </div>
@@ -246,19 +247,19 @@ export default function ProgressScreen() {
       </section>
 
       {/* Clinical Markers */}
-      <section className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 space-y-4">
-        <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-500">Clinical Markers (30D Avg)</h3>
+      <section className="bg-surface border border-border rounded-2xl p-5 space-y-4">
+        <h3 className="text-[10px] font-black uppercase tracking-widest text-text-muted">Clinical Markers (30D Avg)</h3>
         <div className="space-y-3">
           <div className="flex justify-between items-center">
-            <span className="text-xs font-medium text-zinc-400">Avg. Daily Intake</span>
-            <span className="text-sm font-bold text-teal-500">{Math.round(avgCalories).toLocaleString()} kcal</span>
+            <span className="text-xs font-medium text-text-muted">Avg. Daily Intake</span>
+            <span className="text-sm font-bold text-accent">{Math.round(avgCalories).toLocaleString()} kcal</span>
           </div>
-          <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden flex gap-0.5">
-            <div className="h-full bg-amber-500" style={{ width: `${(todayMacros.protein * 4 / (todayMacros.calories || 1)) * 100}%` }} />
-            <div className="h-full bg-teal-500" style={{ width: `${(todayMacros.carbs * 4 / (todayMacros.calories || 1)) * 100}%` }} />
-            <div className="h-full bg-rose-500" style={{ width: `${(todayMacros.fat * 9 / (todayMacros.calories || 1)) * 100}%` }} />
+          <div className="w-full bg-surface-alt h-1.5 rounded-full overflow-hidden flex gap-0.5">
+            <div className="h-full bg-accent-light" style={{ width: `${(todayMacros.protein * 4 / (todayMacros.calories || 1)) * 100}%` }} />
+            <div className="h-full bg-accent" style={{ width: `${(todayMacros.carbs * 4 / (todayMacros.calories || 1)) * 100}%` }} />
+            <div className="h-full bg-accent-dark" style={{ width: `${(todayMacros.fat * 9 / (todayMacros.calories || 1)) * 100}%` }} />
           </div>
-          <div className="flex justify-between text-[10px] font-bold uppercase text-zinc-600">
+          <div className="flex justify-between text-[10px] font-bold uppercase text-text-faint">
             <span>PRO: {todayMacros.protein}G</span>
             <span>CHO: {todayMacros.carbs}G</span>
             <span>FAT: {todayMacros.fat}G</span>
@@ -281,13 +282,13 @@ export default function ProgressScreen() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl"
+              className="relative w-full max-w-sm bg-surface border border-border rounded-2xl p-6 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-black uppercase tracking-tight">
                   {modalType === 'measurement' ? '体重を記録' : '写真を記録'}
                 </h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-zinc-500 hover:text-white">
+                <button onClick={() => setIsModalOpen(false)} className="text-text-muted hover:text-white">
                   <X size={20} />
                 </button>
               </div>
@@ -295,22 +296,22 @@ export default function ProgressScreen() {
               {modalType === 'measurement' ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">体重 (KG)</label>
                     <input 
                       type="number" 
                       step="0.1"
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white outline-none focus:border-amber-500"
+                      className="w-full bg-surface-alt border border-border-light rounded-lg p-3 text-white outline-none focus:border-accent"
                       value={newWeight}
                       onChange={(e) => setNewWeight(e.target.value)}
                       placeholder="85.5"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪率 (%)</label>
+                    <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">体脂肪率 (%)</label>
                     <input 
                       type="number" 
                       step="0.1"
-                      className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white outline-none focus:border-amber-500"
+                      className="w-full bg-surface-alt border border-border-light rounded-lg p-3 text-white outline-none focus:border-accent"
                       value={newBodyFat}
                       onChange={(e) => setNewBodyFat(e.target.value)}
                       placeholder="12.0"
@@ -319,7 +320,7 @@ export default function ProgressScreen() {
                   <button 
                     onClick={handleAddMeasurement}
                     disabled={isSaving || !newWeight || !newBodyFat}
-                    className="w-full bg-amber-500 text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
+                    className="w-full bg-accent text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
                   >
                     {isSaving ? '保存中...' : '保存する'}
                   </button>
@@ -329,16 +330,16 @@ export default function ProgressScreen() {
                   <button 
                     onClick={handleAddVisualEntry}
                     disabled={isSaving}
-                    className="w-full aspect-[3/4] rounded-xl border-2 border-dashed border-zinc-800 flex flex-col items-center justify-center text-zinc-600 hover:border-amber-500 hover:text-amber-500 transition-all group"
+                    className="w-full aspect-[3/4] rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center text-text-faint hover:border-accent hover:text-accent transition-all group"
                   >
                     <Camera size={48} className="mb-2 group-hover:scale-110 transition-transform" />
                     <p className="text-[10px] font-bold uppercase tracking-widest">Tap to Upload</p>
                   </button>
-                  <p className="text-[10px] text-zinc-500 text-center">※デモ版ではランダムな画像が保存されます</p>
+                  <p className="text-[10px] text-text-muted text-center">※デモ版ではランダムな画像が保存されます</p>
                   <button 
                     onClick={handleAddVisualEntry}
                     disabled={isSaving}
-                    className="w-full bg-amber-500 text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
+                    className="w-full bg-accent text-black font-black py-4 rounded-xl uppercase tracking-widest disabled:opacity-50 mt-4"
                   >
                     {isSaving ? '保存中...' : '写真を保存'}
                   </button>
@@ -354,19 +355,19 @@ export default function ProgressScreen() {
 
 function MetricCard({ label, value, unit, icon, delta, deltaType, period }: any) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 p-5 rounded-xl">
+    <div className="bg-surface border border-border p-5 rounded-xl">
       <div className="flex justify-between items-start mb-1">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500">{label}</span>
-        <span className="text-zinc-700">{icon}</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{label}</span>
+        <span className="text-text-faint">{icon}</span>
       </div>
       <div className="flex items-baseline gap-2">
         <span className="text-3xl font-black tabular-nums">{value}</span>
-        <span className="text-xs text-zinc-500 font-bold">{unit}</span>
+        <span className="text-xs text-text-muted font-bold">{unit}</span>
       </div>
-      <div className={cn("mt-4 flex items-center gap-1.5 text-xs font-bold", deltaType === 'down' ? "text-rose-500" : "text-teal-500")}>
+      <div className={cn("mt-4 flex items-center gap-1.5 text-xs font-bold text-accent")}>
         {deltaType === 'down' ? <TrendingDown size={14}/> : <TrendingUp size={14}/>}
         {delta}
-        <span className="text-[10px] text-zinc-600 ml-1">{period}</span>
+        <span className="text-[10px] text-text-faint ml-1">{period}</span>
       </div>
     </div>
   );

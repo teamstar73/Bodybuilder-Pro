@@ -5,4 +5,23 @@
   --font-headline: "Space Grotesk", sans-serif;
   --font-body: "Inter", sans-serif;
   --font-label: "Inter", sans-serif;
+
+  --color-bg: #0A0A0A;
+  --color-surface: #111111;
+  --color-surface-alt: #1C1C1C;
+  --color-surface-high: #242424;
+  --color-border: #2A2A2A;
+  --color-border-light: #333333;
+  --color-accent: #C9A84C;
+  --color-accent-light: #E8C96A;
+  --color-accent-dark: #9A7A32;
+  --color-text: #FFFFFF;
+  --color-text-muted: #888888;
+  --color-text-faint: #444444;
+  --color-success: #C9A84C;
+  --color-warning: #C9A84C;
+  --color-danger: #888888;
+  --color-protein: #E8C96A;
+  --color-carbs: #C9A84C;
+  --color-fat: #9A7A32;
 }

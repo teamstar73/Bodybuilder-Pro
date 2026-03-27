@@ -10,7 +10,7 @@ import { cn } from '../lib/utils';
 import { logout as firebaseLogout } from '../firebase';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) => void }) {
+export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: 'home' | 'log' | 'supplements' | 'peaking' | 'progress' | 'profile' | 'settings') => void }) {
   const { resetData, user, updateUser } = useAppStore();
 
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -36,12 +36,12 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
     <div className="space-y-6 pb-24 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="py-4">
         <h2 className="text-2xl font-black uppercase tracking-tight">Settings</h2>
-        <p className="text-zinc-500 text-xs">アプリの環境設定とデータ管理</p>
+        <p className="text-text-muted text-xs">アプリの環境設定とデータ管理</p>
       </header>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">アカウント</h3>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">アカウント</h3>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
           <SettingsItem 
             icon={<UserIcon size={18} />} 
             label="プロフィール編集" 
@@ -57,8 +57,8 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">一般設定</h3>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">一般設定</h3>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
           <SettingsItem 
             icon={<Bell size={18} />} 
             label="通知設定" 
@@ -80,8 +80,8 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-2">アプリ情報</h3>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">アプリ情報</h3>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
           <SettingsItem icon={<Smartphone size={18} />} label="バージョン" value="1.0.0" />
           <SettingsItem icon={<Globe size={18} />} label="言語" value="日本語" />
           <SettingsItem 
@@ -107,24 +107,24 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-sm bg-zinc-900 border border-zinc-800 rounded-2xl p-6 shadow-2xl"
+              className="relative w-full max-w-sm bg-surface border border-border rounded-2xl p-6 shadow-2xl"
             >
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-black uppercase tracking-tight">ヘルプ & サポート</h3>
-                <button onClick={() => setIsHelpModalOpen(false)} className="text-zinc-500 hover:text-white">
+                <button onClick={() => setIsHelpModalOpen(false)} className="text-text-muted hover:text-white">
                   <X size={20} />
                 </button>
               </div>
-              <div className="space-y-4 text-sm text-zinc-400">
+              <div className="space-y-4 text-sm text-text-muted">
                 <p>PeakPhysiqueをご利用いただきありがとうございます。</p>
                 <p>使い方がわからない場合や不具合がある場合は、以下のサポート窓口までご連絡ください。</p>
-                <div className="bg-zinc-800 p-4 rounded-xl border border-zinc-700">
-                  <div className="text-[10px] font-bold text-zinc-500 uppercase mb-1">Email Support</div>
+                <div className="bg-surface-alt p-4 rounded-xl border border-border-light">
+                  <div className="text-[10px] font-bold text-text-faint uppercase mb-1">Email Support</div>
                   <div className="text-white font-bold">support@peakphysique.app</div>
                 </div>
                 <button 
                   onClick={() => setIsHelpModalOpen(false)}
-                  className="w-full bg-amber-500 text-black font-black py-3 rounded-xl uppercase tracking-widest mt-4"
+                  className="w-full bg-accent text-black font-black py-3 rounded-xl uppercase tracking-widest mt-4"
                 >
                   閉じる
                 </button>
@@ -135,11 +135,11 @@ export default function SettingsScreen({ onNavigate }: { onNavigate: (tab: any) 
       </AnimatePresence>
 
       <div className="space-y-4">
-        <h3 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest px-2">危険な操作</h3>
-        <div className="bg-rose-500/5 border border-rose-500/20 rounded-2xl overflow-hidden">
+        <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-widest px-2">危険な操作</h3>
+        <div className="bg-surface border border-border rounded-2xl overflow-hidden">
           <button 
             onClick={handleReset}
-            className="w-full flex items-center justify-between p-4 text-rose-500 hover:bg-rose-500/10 transition-all"
+            className="w-full flex items-center justify-between p-4 text-text-muted hover:bg-surface-alt hover:text-text transition-all"
           >
             <div className="flex items-center gap-3">
               <Trash2 size={18} />
@@ -170,19 +170,19 @@ function SettingsItem({
     <button 
       onClick={onClick}
       className={cn(
-        "w-full flex items-center justify-between p-4 border-b border-zinc-800 last:border-0 hover:bg-zinc-800/50 transition-all",
-        variant === 'danger' ? "text-rose-500" : "text-zinc-200"
+        "w-full flex items-center justify-between p-4 border-b border-border last:border-0 hover:bg-surface-high/50 transition-all",
+        variant === 'danger' ? "text-text-muted" : "text-text"
       )}
     >
       <div className="flex items-center gap-3">
-        <div className={cn(variant === 'danger' ? "text-rose-500" : "text-zinc-400")}>
+        <div className={cn(variant === 'danger' ? "text-text-muted" : "text-text-faint")}>
           {icon}
         </div>
         <span className="text-sm font-bold">{label}</span>
       </div>
       <div className="flex items-center gap-2">
-        {value && <span className="text-xs font-bold text-zinc-500">{value}</span>}
-        <ChevronRight size={16} className="text-zinc-600" />
+        {value && <span className="text-xs font-bold text-text-muted">{value}</span>}
+        <ChevronRight size={16} className="text-text-faint" />
       </div>
     </button>
   );

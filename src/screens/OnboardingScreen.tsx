@@ -117,10 +117,10 @@ export default function OnboardingScreen() {
             <h2 className="text-2xl font-black uppercase tracking-tight">お名前を教えてください</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">名前</label>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">名前</label>
                 <input 
                   type="text" 
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white focus:border-amber-500 outline-none"
+                  className="w-full bg-surface border border-border rounded-lg p-4 text-white focus:border-accent outline-none"
                   placeholder="ENTER NAME"
                   value={formData.name || ''}
                   onChange={(e) => updateField('name', e.target.value)}
@@ -151,13 +151,13 @@ export default function OnboardingScreen() {
               <h2 className="text-xl font-black uppercase tracking-tight">基本設定</h2>
               
               <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500">性別</label>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted">性別</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button 
                     onClick={() => updateField('sex', 'male')}
                     className={cn(
                       "p-3 rounded-xl font-bold border transition-all text-sm",
-                      formData.sex === 'male' ? "bg-amber-500 border-amber-500 text-black" : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                      formData.sex === 'male' ? "bg-accent border-accent text-black" : "bg-surface border-border text-text-muted"
                     )}
                   >
                     MALE
@@ -166,7 +166,7 @@ export default function OnboardingScreen() {
                     onClick={() => updateField('sex', 'female')}
                     className={cn(
                       "p-3 rounded-xl font-bold border transition-all text-sm",
-                      formData.sex === 'female' ? "bg-amber-500 border-amber-500 text-black" : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                      formData.sex === 'female' ? "bg-accent border-accent text-black" : "bg-surface border-border text-text-muted"
                     )}
                   >
                     FEMALE
@@ -175,7 +175,7 @@ export default function OnboardingScreen() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500">食事スタイル</label>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted">食事スタイル</label>
                 <div className="grid grid-cols-2 gap-2">
                   {diets.map((d) => (
                     <button
@@ -183,7 +183,7 @@ export default function OnboardingScreen() {
                       onClick={() => updateField('diet_type', d.id)}
                       className={cn(
                         "p-3 rounded-xl font-bold border transition-all text-xs",
-                        formData.diet_type === d.id ? "bg-amber-500 border-amber-500 text-black" : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                        formData.diet_type === d.id ? "bg-accent border-accent text-black" : "bg-surface border-border text-text-muted"
                       )}
                     >
                       {d.label}
@@ -193,7 +193,7 @@ export default function OnboardingScreen() {
               </div>
 
               <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500">トレーニング歴</label>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted">トレーニング歴</label>
                 <div className="grid grid-cols-1 gap-2">
                   {experiences.map((e) => (
                     <button
@@ -201,7 +201,7 @@ export default function OnboardingScreen() {
                       onClick={() => updateField('training_experience', e.id)}
                       className={cn(
                         "p-3 rounded-xl font-bold border transition-all text-xs text-left px-4",
-                        formData.training_experience === e.id ? "bg-amber-500 border-amber-500 text-black" : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                        formData.training_experience === e.id ? "bg-accent border-accent text-black" : "bg-surface border-border text-text-muted"
                       )}
                     >
                       {e.label}
@@ -217,11 +217,11 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">年齢を入力</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">年齢</label>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">年齢</label>
               <input 
                 type="number" 
                 inputMode="numeric"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 placeholder="25"
                 value={formData.age === undefined || isNaN(formData.age as number) ? '' : formData.age}
                 onChange={(e) => {
@@ -239,11 +239,11 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">身長を入力</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">身長 (CM)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">身長 (CM)</label>
               <input 
                 type="number" 
                 inputMode="numeric"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 placeholder="180"
                 value={formData.height_cm === undefined || isNaN(formData.height_cm as number) ? '' : formData.height_cm}
                 onChange={(e) => {
@@ -261,12 +261,12 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">現在の体重を入力</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体重 (KG)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">体重 (KG)</label>
               <input 
                 type="number" 
                 inputMode="decimal"
                 step="0.1"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 placeholder="85.5"
                 value={formData.weight_kg === undefined || isNaN(formData.weight_kg as number) ? '' : formData.weight_kg}
                 onChange={(e) => {
@@ -284,12 +284,12 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">体脂肪率を入力</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">体脂肪 %</label>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">体脂肪 %</label>
               <input 
                 type="number" 
                 inputMode="decimal"
                 step="0.1"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 placeholder="12.0"
                 value={formData.body_fat_pct === undefined || isNaN(formData.body_fat_pct as number) ? '' : formData.body_fat_pct}
                 onChange={(e) => {
@@ -299,7 +299,7 @@ export default function OnboardingScreen() {
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
-              <p className="mt-4 text-zinc-500 text-xs">正確なFFMI（除脂肪体重指数）の算出とマクロ計算に必須です。</p>
+              <p className="mt-4 text-text-muted text-xs">正確なFFMI（除脂肪体重指数）の算出とマクロ計算に必須です。</p>
             </div>
           </div>
         );
@@ -321,14 +321,14 @@ export default function OnboardingScreen() {
                   onClick={() => { updateField('activity_factor', a.factor); handleNext(a.factor); }}
                   className={cn(
                     "w-full p-4 rounded-xl border text-left transition-all flex justify-between items-center",
-                    formData.activity_factor === a.factor ? "bg-amber-500/10 border-amber-500" : "bg-zinc-900 border-zinc-800"
+                    formData.activity_factor === a.factor ? "bg-accent/10 border-accent" : "bg-surface border-border"
                   )}
                 >
                   <div>
-                    <div className={cn("font-bold", formData.activity_factor === a.factor ? "text-amber-500" : "text-white")}>{a.label}</div>
-                    <div className="text-xs text-zinc-500">{a.desc}</div>
+                    <div className={cn("font-bold", formData.activity_factor === a.factor ? "text-accent" : "text-white")}>{a.label}</div>
+                    <div className="text-xs text-text-muted">{a.desc}</div>
                   </div>
-                  {formData.activity_factor === a.factor && <Check className="text-amber-500" size={20} />}
+                  {formData.activity_factor === a.factor && <Check className="text-accent" size={20} />}
                 </button>
               ))}
             </div>
@@ -352,14 +352,14 @@ export default function OnboardingScreen() {
                   onClick={() => { updateField('phase', p.id); handleNext(p.id); }}
                   className={cn(
                     "p-6 rounded-xl border text-left transition-all flex justify-between items-center",
-                    formData.phase === p.id ? "bg-amber-500/10 border-amber-500" : "bg-zinc-900 border-zinc-800"
+                    formData.phase === p.id ? "bg-accent/10 border-accent" : "bg-surface border-border"
                   )}
                 >
                   <div>
-                    <div className={cn("font-bold text-lg", formData.phase === p.id ? "text-amber-500" : "text-white")}>{p.label}</div>
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-widest">{p.desc}</div>
+                    <div className={cn("font-bold text-lg", formData.phase === p.id ? "text-accent" : "text-white")}>{p.label}</div>
+                    <div className="text-[10px] text-text-muted uppercase tracking-widest">{p.desc}</div>
                   </div>
-                  {formData.phase === p.id && <Check className="text-amber-500" size={20} />}
+                  {formData.phase === p.id && <Check className="text-accent" size={20} />}
                 </button>
               ))}
             </div>
@@ -370,12 +370,12 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">目標体重を入力</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">目標体重 (KG)</label>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">目標体重 (KG)</label>
                 <input 
                   type="number" 
                   inputMode="decimal"
                   step="0.1"
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                  className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                   placeholder="80.0"
                   value={formData.goal_weight_kg === undefined || isNaN(formData.goal_weight_kg as number) ? '' : formData.goal_weight_kg}
                   onChange={(e) => {
@@ -393,12 +393,12 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">目標体脂肪率を入力</h2>
             <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-2">目標体脂肪 %</label>
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2">目標体脂肪 %</label>
               <input 
                 type="number" 
                 inputMode="decimal"
                 step="0.1"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 placeholder="8.0"
                 value={formData.goal_body_fat_pct === undefined || isNaN(formData.goal_body_fat_pct as number) ? '' : formData.goal_body_fat_pct}
                 onChange={(e) => {
@@ -408,7 +408,7 @@ export default function OnboardingScreen() {
                 onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                 autoFocus
               />
-              <p className="mt-4 text-zinc-500 text-xs">理想のコンディションに向けた目標値を設定してください。</p>
+              <p className="mt-4 text-text-muted text-xs">理想のコンディションに向けた目標値を設定してください。</p>
             </div>
           </div>
         );
@@ -424,7 +424,7 @@ export default function OnboardingScreen() {
                   onClick={() => { updateField('fasting_window', w); handleNext(); }}
                   className={cn(
                     "p-6 rounded-xl border text-center transition-all",
-                    formData.fasting_window === w ? "bg-amber-500/10 border-amber-500 text-amber-500" : "bg-zinc-900 border-zinc-800 text-white"
+                    formData.fasting_window === w ? "bg-accent/10 border-accent text-accent" : "bg-surface border-border text-white"
                   )}
                 >
                   <div className="text-xl font-black">{w}</div>
@@ -438,10 +438,10 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">アレルギー・制限 (任意)</h2>
             <div className="space-y-4">
-              <p className="text-zinc-500 text-sm">避けている食材があれば入力してください（カンマ区切り）。</p>
+              <p className="text-text-muted text-sm">避けている食材があれば入力してください（カンマ区切り）。</p>
               <input 
                 type="text" 
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 placeholder="牛乳, 卵, ナッツ..."
                 value={formData.allergies?.join(', ') || ''}
                 onChange={(e) => updateField('allergies', e.target.value.split(',').map(s => s.trim()))}
@@ -456,16 +456,16 @@ export default function OnboardingScreen() {
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">大会日程 (任意)</h2>
             <div className="space-y-4">
-              <p className="text-zinc-500 text-sm">大会日を設定すると、自動的にピーキングプロトコルが生成されます。</p>
+              <p className="text-text-muted text-sm">大会日を設定すると、自動的にピーキングプロトコルが生成されます。</p>
               <input 
                 type="date" 
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-4 text-white outline-none focus:border-amber-500"
+                className="w-full bg-surface border border-border rounded-lg p-4 text-white outline-none focus:border-accent"
                 value={formData.competition_date || ''}
                 onChange={(e) => updateField('competition_date', e.target.value)}
               />
               <button 
                 onClick={() => { updateField('competition_date', undefined); handleNext(); }}
-                className="w-full text-zinc-500 text-sm hover:text-white transition-colors"
+                className="w-full text-text-muted text-sm hover:text-white transition-colors"
               >
                 スキップする
               </button>
@@ -478,29 +478,29 @@ export default function OnboardingScreen() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-black uppercase tracking-tight">計算結果</h2>
-            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 space-y-6">
+            <div className="bg-surface border border-border rounded-2xl p-6 space-y-6">
               <div className="text-center">
-                <div className="text-zinc-500 text-xs uppercase tracking-widest mb-1">推定TDEE</div>
-                <div className="text-4xl font-black text-white">{Math.round(tdee)} <span className="text-sm font-normal text-zinc-500">KCAL</span></div>
+                <div className="text-text-muted text-xs uppercase tracking-widest mb-1">推定TDEE</div>
+                <div className="text-4xl font-black text-white">{Math.round(tdee)} <span className="text-sm font-normal text-text-muted">KCAL</span></div>
               </div>
-              <div className="h-px bg-zinc-800" />
+              <div className="h-px bg-border" />
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-teal-500 text-[10px] font-bold uppercase mb-1">PROTEIN</div>
+                  <div className="text-protein text-[10px] font-bold uppercase mb-1">PROTEIN</div>
                   <div className="text-xl font-bold text-white">{targets.protein_g}g</div>
                 </div>
                 <div>
-                  <div className="text-amber-500 text-[10px] font-bold uppercase mb-1">CARBS</div>
+                  <div className="text-carbs text-[10px] font-bold uppercase mb-1">CARBS</div>
                   <div className="text-xl font-bold text-white">{targets.carbs_g}g</div>
                 </div>
                 <div>
-                  <div className="text-rose-500 text-[10px] font-bold uppercase mb-1">FAT</div>
+                  <div className="text-fat text-[10px] font-bold uppercase mb-1">FAT</div>
                   <div className="text-xl font-bold text-white">{targets.fat_g}g</div>
                 </div>
               </div>
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex gap-3">
-                <Info className="text-amber-500 shrink-0" size={20} />
-                <p className="text-xs text-zinc-400 leading-relaxed">
+              <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 flex gap-3">
+                <Info className="text-accent shrink-0" size={20} />
+                <p className="text-xs text-text-muted leading-relaxed">
                   これらの数値は科学的根拠に基づいた初期設定です。体調や進捗に合わせてアプリ内で調整可能です。
                 </p>
               </div>
@@ -511,12 +511,12 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-bg text-white flex flex-col">
       <header className="p-6 pt-12">
-        <div className="text-amber-500 font-bold text-xs tracking-[0.2em] mb-1">STEP {step.toString().padStart(2, '0')}/{totalSteps.toString().padStart(2, '0')}</div>
+        <div className="text-accent font-bold text-xs tracking-[0.2em] mb-1">STEP {step.toString().padStart(2, '0')}/{totalSteps.toString().padStart(2, '0')}</div>
         <div className="flex gap-1">
           {Array.from({ length: totalSteps }).map((_, i) => (
-            <div key={i} className={cn("h-1 flex-1 rounded-full", i + 1 <= step ? "bg-amber-500" : "bg-zinc-800")} />
+            <div key={i} className={cn("h-1 flex-1 rounded-full", i + 1 <= step ? "bg-accent" : "bg-surface-alt")} />
           ))}
         </div>
       </header>
@@ -539,7 +539,7 @@ export default function OnboardingScreen() {
         {step > 1 && (
           <button 
             onClick={handleBack}
-            className="w-14 h-14 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400"
+            className="w-14 h-14 rounded-xl bg-surface border border-border flex items-center justify-center text-text-muted"
           >
             <ChevronLeft size={24} />
           </button>
@@ -547,7 +547,7 @@ export default function OnboardingScreen() {
         <button 
           onClick={handleNext}
           disabled={isSaving}
-          className="flex-1 h-14 rounded-xl bg-amber-500 text-black font-black tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
+          className="flex-1 h-14 rounded-xl bg-accent text-black font-black tracking-widest flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isSaving ? (
             <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />

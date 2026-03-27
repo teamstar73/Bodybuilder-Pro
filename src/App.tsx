@@ -13,7 +13,8 @@ import ProgressScreen from './screens/ProgressScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import FriendsScreen from './screens/FriendsScreen';
 import SettingsScreen from './screens/SettingsScreen';
-import { Home, Utensils, Timer, BarChart2, Menu, Settings, User as UserIcon, X, Trash2, LogOut, ChevronRight, LogIn, Users } from 'lucide-react';
+import SupplementsScreen from './screens/SupplementsScreen';
+import { Home, Utensils, Timer, BarChart2, Menu, Settings, User as UserIcon, X, Trash2, LogOut, ChevronRight, LogIn, Users, Zap } from 'lucide-react';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth, loginWithGoogle, logout as firebaseLogout, loginWithEmail, registerWithEmail } from './firebase';
@@ -21,7 +22,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 export default function App() {
   const { user, userId, setUserId, syncWithFirebase, resetData } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'peaking' | 'progress' | 'friends' | 'profile' | 'settings'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'log' | 'supplements' | 'peaking' | 'progress' | 'friends' | 'profile' | 'settings'>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -92,47 +93,47 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!userId) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6 text-center space-y-8">
+      <div className="min-h-screen bg-bg text-text flex flex-col items-center justify-center p-6 text-center space-y-8">
         <div className="space-y-2">
-          <h1 className="text-5xl font-black tracking-tighter text-amber-500 italic">BODYBUILDER PRO</h1>
-          <p className="text-zinc-500 font-bold uppercase tracking-widest text-xs">The Ultimate Physique Management System</p>
+          <h1 className="text-5xl font-black tracking-tighter text-accent italic">BODYBUILDER PRO</h1>
+          <p className="text-text-muted font-bold uppercase tracking-widest text-xs">The Ultimate Physique Management System</p>
         </div>
         
         <div className="w-full max-w-sm space-y-6">
           <form onSubmit={handleEmailAuth} className="space-y-4 text-left">
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Email</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Email</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 text-sm focus:border-amber-500 outline-none transition-all"
+                className="w-full bg-surface border border-border rounded-xl py-3 px-4 text-sm focus:border-accent outline-none transition-all"
                 placeholder="email@example.com"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-500 ml-1">Password</label>
+              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted ml-1">Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 px-4 text-sm focus:border-amber-500 outline-none transition-all"
+                className="w-full bg-surface border border-border rounded-xl py-3 px-4 text-sm focus:border-accent outline-none transition-all"
                 placeholder="••••••••"
                 required
               />
             </div>
             
             {authError && (
-              <div className="text-rose-500 text-[10px] font-bold uppercase tracking-widest bg-rose-500/10 p-3 rounded-xl border border-rose-500/20">
+              <div className="text-danger text-[10px] font-bold uppercase tracking-widest bg-text-muted/10 p-3 rounded-xl border border-text-muted/20">
                 {authError}
               </div>
             )}
@@ -140,7 +141,7 @@ export default function App() {
             <button 
               type="submit"
               disabled={isAuthLoading}
-              className="w-full h-14 bg-amber-500 text-black rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+              className="w-full h-14 bg-accent text-black rounded-2xl font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
             >
               {isAuthLoading ? (
                 <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin mx-auto" />
@@ -151,15 +152,15 @@ export default function App() {
           </form>
 
           <div className="flex items-center gap-4 py-2">
-            <div className="h-px flex-1 bg-zinc-800" />
-            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">OR</span>
-            <div className="h-px flex-1 bg-zinc-800" />
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-[10px] font-black text-text-faint uppercase tracking-widest">OR</span>
+            <div className="h-px flex-1 bg-border" />
           </div>
 
           <button 
             onClick={handleGoogleLogin}
             disabled={isAuthLoading}
-            className="w-full h-14 bg-white text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-zinc-200 transition-colors disabled:opacity-50"
+            className="w-full h-14 bg-text text-black rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-text/90 transition-colors disabled:opacity-50"
           >
             {isAuthLoading ? (
               <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -173,12 +174,12 @@ export default function App() {
 
           <button 
             onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-            className="text-[10px] font-black text-amber-500 uppercase tracking-widest hover:text-amber-400 transition-colors"
+            className="text-[10px] font-black text-accent uppercase tracking-widest hover:text-accent-light transition-colors"
           >
             {authMode === 'login' ? 'アカウントをお持ちでない方はこちら' : 'すでにアカウントをお持ちの方はこちら'}
           </button>
 
-          <p className="text-[10px] text-zinc-600 uppercase tracking-widest leading-relaxed">
+          <p className="text-[10px] text-text-faint uppercase tracking-widest leading-relaxed">
             ログインすることで、すべてのデータがクラウドに保存され、複数のデバイスで同期されます。
           </p>
         </div>
@@ -202,6 +203,7 @@ export default function App() {
     switch (activeTab) {
       case 'home': return <DashboardScreen onNavigate={navigateTo} />;
       case 'log': return <FoodLogScreen />;
+      case 'supplements': return <SupplementsScreen />;
       case 'peaking': return <PeakingScreen />;
       case 'progress': return <ProgressScreen />;
       case 'friends': return <FriendsScreen />;
@@ -225,7 +227,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-body selection:bg-amber-500/30">
+    <div className="min-h-screen bg-bg text-text font-body selection:bg-accent/30">
       {/* Sidebar Overlay */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -242,11 +244,11 @@ export default function App() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 left-0 bottom-0 w-72 bg-zinc-950 border-r border-zinc-800 z-[70] flex flex-col"
+              className="fixed top-0 left-0 bottom-0 w-72 bg-surface-alt border-r border-border z-[70] flex flex-col"
             >
-              <div className="p-6 border-b border-zinc-900 flex justify-between items-center">
-                <h2 className="font-black text-amber-500 tracking-tighter text-xl">MENU</h2>
-                <button onClick={() => setIsSidebarOpen(false)} className="text-zinc-500 hover:text-white transition-colors">
+              <div className="p-6 border-b border-border flex justify-between items-center">
+                <h2 className="font-black text-accent tracking-tighter text-xl">MENU</h2>
+                <button onClick={() => setIsSidebarOpen(false)} className="text-text-muted hover:text-text transition-colors">
                   <X size={24} />
                 </button>
               </div>
@@ -254,10 +256,10 @@ export default function App() {
               <div className="flex-1 overflow-y-auto p-4 space-y-2">
                 <button 
                   onClick={() => navigateTo('profile')}
-                  className="w-full px-2 py-4 mb-4 bg-zinc-900/50 rounded-2xl border border-zinc-800/50 hover:bg-zinc-900 transition-all text-left"
+                  className="w-full px-2 py-4 mb-4 bg-surface/50 rounded-2xl border border-border/50 hover:bg-surface transition-all text-left"
                 >
                   <div className="flex items-center gap-3 px-2">
-                    <div className="w-12 h-12 rounded-full border-2 border-amber-500 p-0.5 overflow-hidden">
+                    <div className="w-12 h-12 rounded-full border-2 border-accent p-0.5 overflow-hidden">
                       <img 
                         src="https://picsum.photos/seed/user/100/100" 
                         alt="Profile" 
@@ -266,12 +268,18 @@ export default function App() {
                       />
                     </div>
                     <div>
-                      <div className="font-bold text-white">{user.name}</div>
-                      <div className="text-[10px] text-amber-500 font-bold uppercase tracking-widest">{user.phase}</div>
+                      <div className="font-bold text-text">{user.name}</div>
+                      <div className="text-[10px] text-accent font-bold uppercase tracking-widest">{user.phase}</div>
                     </div>
                   </div>
                 </button>
 
+                <SidebarItem 
+                  icon={<Zap size={20} />} 
+                  label="サプリメント" 
+                  onClick={() => navigateTo('supplements')} 
+                  active={activeTab === 'supplements'}
+                />
                 <SidebarItem 
                   icon={<BarChart2 size={20} />} 
                   label="進捗状況" 
@@ -297,7 +305,7 @@ export default function App() {
                   active={activeTab === 'settings'}
                 />
                 
-                <div className="pt-4 mt-4 border-t border-zinc-900">
+                <div className="pt-4 mt-4 border-t border-border">
                   <SidebarItem 
                     icon={<LogOut size={20} />} 
                     label="ログアウト" 
@@ -313,8 +321,8 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="p-6 border-t border-zinc-900">
-                <div className="text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] text-center">
+              <div className="p-6 border-t border-border">
+                <div className="text-[10px] font-bold text-text-faint uppercase tracking-[0.3em] text-center">
                   BodyBuilder Pro v1.0
                 </div>
               </div>
@@ -324,17 +332,17 @@ export default function App() {
       </AnimatePresence>
 
       {/* Top Bar */}
-      <header className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-xl border-b border-zinc-800 h-16 flex justify-between items-center px-6">
+      <header className="fixed top-0 w-full z-50 bg-bg/80 backdrop-blur-xl border-b border-border h-16 flex justify-between items-center px-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => setIsSidebarOpen(true)} className="text-amber-500 active:scale-90 transition-transform">
+          <button onClick={() => setIsSidebarOpen(true)} className="text-accent active:scale-90 transition-transform">
             <Menu size={24} />
           </button>
-          <h1 className="font-headline text-xl font-black tracking-tighter text-amber-500">BODYBUILDER PRO</h1>
+          <h1 className="font-headline text-xl font-black tracking-tighter text-accent">BODYBUILDER PRO</h1>
         </div>
         <div className="flex items-center gap-3">
           <button 
             onClick={() => setActiveTab('profile')}
-            className="w-10 h-10 rounded-full border-2 border-amber-500 p-0.5 overflow-hidden active:scale-95 transition-transform"
+            className="w-10 h-10 rounded-full border-2 border-accent p-0.5 overflow-hidden active:scale-95 transition-transform"
           >
             <img 
               src="https://picsum.photos/seed/user/100/100" 
@@ -352,7 +360,7 @@ export default function App() {
       </main>
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 w-full bg-black/90 backdrop-blur-xl border-t border-zinc-800 flex justify-around items-center h-20 pb-safe z-50">
+      <nav className="fixed bottom-0 left-0 w-full bg-bg/90 backdrop-blur-xl border-t border-border flex justify-around items-center h-20 pb-safe z-50">
         <NavItem 
           active={activeTab === 'home'} 
           onClick={() => setActiveTab('home')} 
@@ -366,6 +374,12 @@ export default function App() {
           label="Log" 
         />
         <NavItem 
+          active={activeTab === 'supplements'} 
+          onClick={() => setActiveTab('supplements')} 
+          icon={<Zap size={24} />} 
+          label="Supps" 
+        />
+        <NavItem 
           active={activeTab === 'peaking'} 
           onClick={() => setActiveTab('peaking')} 
           icon={<Timer size={24} />} 
@@ -376,12 +390,6 @@ export default function App() {
           onClick={() => setActiveTab('progress')} 
           icon={<BarChart2 size={24} />} 
           label="Progress" 
-        />
-        <NavItem 
-          active={activeTab === 'friends'} 
-          onClick={() => setActiveTab('friends')} 
-          icon={<Users size={24} />} 
-          label="Friends" 
         />
       </nav>
     </div>
@@ -406,8 +414,8 @@ function SidebarItem({
       onClick={onClick}
       className={cn(
         "w-full flex items-center justify-between p-4 rounded-xl transition-all active:scale-[0.98]",
-        variant === 'danger' ? "text-rose-500 hover:bg-rose-500/10" : 
-        active ? "bg-amber-500/10 text-amber-500" : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+        variant === 'danger' ? "text-text-muted hover:bg-surface-alt hover:text-text" : 
+        active ? "bg-accent/10 text-accent" : "text-text-muted hover:bg-surface hover:text-text"
       )}
     >
       <div className="flex items-center gap-3">
@@ -425,7 +433,7 @@ function NavItem({ active, onClick, icon, label }: { active: boolean; onClick: (
       onClick={onClick}
       className={cn(
         "flex flex-col items-center justify-center py-1 px-4 rounded-xl transition-all active:scale-90",
-        active ? "text-amber-500 bg-amber-500/10" : "text-zinc-500"
+        active ? "text-accent" : "text-text-faint"
       )}
     >
       {icon}

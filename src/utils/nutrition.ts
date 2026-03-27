@@ -3,7 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { User, MacroTarget, PeakDay } from '../types';
+import { User, MacroTarget, PeakDay, UserPhase } from '../types';
+
+export function getRecommendedSupplements(phase: UserPhase): string[] {
+  switch (phase) {
+    case 'bulk':
+    case 'lean-bulk':
+      return ['クレアチン', 'βアラニン', '亜鉛', 'マグネシウム', 'ビタミンD3'];
+    case 'cut':
+      return ['カフェイン', 'Lカルニチン', 'オメガ3 EPA/DHA', 'ビタミンD3', '亜鉛'];
+    case 'peak':
+      return ['マグネシウム', 'カリウム', 'ビタミンC', 'オメガ3 EPA/DHA'];
+    case 'maintain':
+      return ['クレアチン', 'オメガ3 EPA/DHA', 'ビタミンD3', 'マグネシウム'];
+    default:
+      return [];
+  }
+}
 
 /**
  * Mifflin-St Jeor Equation
@@ -131,6 +147,45 @@ export const calculateFFMI = (weight_kg: number, height_cm: number, body_fat_pct
   const ffmi = lean_mass_kg / (height_m * height_m);
   const normalized = ffmi + 6.1 * (1.8 - height_m);
   return { ffmi, normalized };
+};
+
+export interface MicronutrientTarget {
+  vitamin_d_iu: number;
+  magnesium_mg: number;
+  zinc_mg: number;
+  iron_mg: number;
+  calcium_mg: number;
+  potassium_mg: number;
+  vitamin_b12_ug: number;
+  vitamin_c_mg: number;
+  omega3_mg: number;
+}
+
+export const MICRONUTRIENT_TARGETS = {
+  vitamin_d_iu: { label: 'ビタミンD', unit: 'IU', male: 2000, female: 2000, advice: '日光浴やサケ・青魚を摂取' },
+  magnesium_mg: { label: 'マグネシウム', unit: 'mg', male: 400, female: 310, advice: 'ナッツ・海藻・ほうれん草を追加' },
+  zinc_mg: { label: '亜鉛', unit: 'mg', male: 11, female: 8, advice: '牡蠣・赤身肉・卵を摂取' },
+  iron_mg: { label: '鉄', unit: 'mg', male: 8, female: 18, advice: 'レバー・ほうれん草・赤身肉を追加' },
+  calcium_mg: { label: 'カルシウム', unit: 'mg', male: 1000, female: 1000, advice: '乳製品・小魚・豆腐を摂取' },
+  potassium_mg: { label: 'カリウム', unit: 'mg', male: 3500, female: 3500, advice: 'バナナ・アボカド・ほうれん草を追加' },
+  vitamin_b12_ug: { label: 'ビタミンB12', unit: 'μg', male: 2.4, female: 2.4, advice: '貝類・レバー・魚介類を摂取' },
+  vitamin_c_mg: { label: 'ビタミンC', unit: 'mg', male: 90, female: 75, advice: 'ブロッコリー・キウイ・柑橘類を追加' },
+  omega3_mg: { label: 'オメガ3', unit: 'mg', male: 2000, female: 2000, advice: 'サバ・イワシ・くるみを摂取' },
+};
+
+export const calculateMicronutrientTargets = (user: User): MicronutrientTarget => {
+  const isMale = user.sex === 'male';
+  return {
+    vitamin_d_iu: 2000,
+    magnesium_mg: isMale ? 400 : 310,
+    zinc_mg: isMale ? 11 : 8,
+    iron_mg: isMale ? 8 : 18,
+    calcium_mg: 1000,
+    potassium_mg: 3500,
+    vitamin_b12_ug: 2.4,
+    vitamin_c_mg: isMale ? 90 : 75,
+    omega3_mg: 2000,
+  };
 };
 
 export const generatePeakingProtocol = (competitionDate: string, weight_kg: number): PeakDay[] => {

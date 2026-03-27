@@ -5,8 +5,9 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { User, FoodEntry, Measurement, Supplement, PeakDay, MacroTarget, VisualLogEntry, Friend, FriendRequest } from '../types';
-import { calculateTDEE, calculateTargetMacros, generatePeakingProtocol, getPersonalizedRecommendations } from '../utils/nutrition';
+import { User, FoodEntry, Measurement, Supplement, PeakDay, MacroTarget, VisualLogEntry, Friend, FriendRequest, FrequentFood } from '../types';
+import { SUPPLEMENT_PRESETS } from '../data/supplements';
+import { calculateTDEE, calculateTargetMacros, generatePeakingProtocol, getPersonalizedRecommendations, getRecommendedSupplements } from '../utils/nutrition';
 import { db, auth } from '../firebase';
 import { doc, setDoc, updateDoc, collection, addDoc, deleteDoc, onSnapshot, query, where, getDocFromServer, getDocs } from 'firebase/firestore';
 
@@ -90,9 +91,17 @@ interface AppStore {
   
   waterIntake: number;
   addWater: (amount: number) => Promise<void>;
+  getWaterTarget: () => number;
+  getTodayWaterIntakeRate: () => number;
+  
+  frequentFoods: FrequentFood[];
+  trackFrequentFood: (food: Omit<FrequentFood, 'count'>) => void;
   
   supplements: Supplement[];
   setSupplements: (s: Supplement[]) => Promise<void>;
+  addSupplement: (s: Omit<Supplement, 'id'>) => Promise<void>;
+  updateSupplement: (id: string | number, updates: Partial<Supplement>) => Promise<void>;
+  removeSupplement: (id: string | number) => Promise<void>;
   toggleSupplementTaken: (id: string | number, date: string) => Promise<void>;
   
   peakingProtocol: PeakDay[];
@@ -106,6 +115,7 @@ interface AppStore {
   getTargetMacros: () => MacroTarget;
   getDaysToCompetition: () => number | null;
   get30DayAvgCalories: () => number;
+  getTodaySupplementIntakeRate: () => number;
   resetData: () => void;
   
   // Firebase Sync
@@ -126,6 +136,7 @@ export const useAppStore = create<AppStore>()(
           measurements: [],
           supplements: [],
           peakingProtocol: [],
+          frequentFoods: [],
         });
       },
       setUser: async (user) => {
@@ -134,25 +145,19 @@ export const useAppStore = create<AppStore>()(
           try {
             await setDoc(doc(db, 'users', userId), user);
             
-            // Initialize supplements based on recommendations
-            const recs = getPersonalizedRecommendations(user);
-            const initialSupps: Supplement[] = recs.supplements.map((name, i) => ({
-              id: (i + 1).toString(),
-              name,
-              dose_g: 0,
-              timing: 'Daily',
-              frequency: '1x',
-              evidence_level: 'A',
-              stock_days_remaining: 30,
-              is_active: true,
-              taken_dates: []
-            }));
-            
-            // Save initial supplements to Firestore
-            for (const s of initialSupps) {
-              await setDoc(doc(db, 'users', userId, 'supplements', s.id.toString()), s);
+            // Initialize supplements based on recommendations if empty
+            const existingSupps = get().supplements;
+            if (existingSupps.length === 0) {
+              const recNames = getRecommendedSupplements(user.phase);
+              const initialSupps = SUPPLEMENT_PRESETS
+                .filter(p => recNames.includes(p.name))
+                .map((p, i) => ({ ...p, id: (i + 1).toString() }));
+              
+              for (const s of initialSupps) {
+                await setDoc(doc(db, 'users', userId, 'supplements', s.id.toString()), s);
+              }
+              set({ supplements: initialSupps as Supplement[] });
             }
-            set({ supplements: initialSupps });
           } catch (error) {
             handleFirestoreError(error, OperationType.WRITE, `users/${userId}`);
           }
@@ -330,18 +335,63 @@ export const useAppStore = create<AppStore>()(
       addWater: async (amount) => {
         const userId = get().userId;
         if (!userId) return;
-        const newTotal = get().waterIntake + amount;
+        const today = new Date().toISOString().split('T')[0];
+        const newTotal = Math.max(0, get().waterIntake + amount);
         try {
-          await setDoc(doc(db, 'users', userId), { water_intake: newTotal }, { merge: true });
+          // Use a subcollection for daily hydration to persist by date
+          await setDoc(doc(db, 'users', userId, 'hydration', today), { 
+            amount: newTotal,
+            updatedAt: new Date().toISOString()
+          });
           set({ waterIntake: newTotal });
         } catch (error) {
-          handleFirestoreError(error, OperationType.UPDATE, `users/${userId}`);
+          handleFirestoreError(error, OperationType.UPDATE, `users/${userId}/hydration/${today}`);
         }
+      },
+      
+      frequentFoods: [],
+      trackFrequentFood: (food) => {
+        const current = get().frequentFoods || [];
+        const existing = current.find(f => f.name === food.name);
+        let updated;
+        if (existing) {
+          updated = current.map(f => f.name === food.name ? { ...f, count: f.count + 1 } : f);
+        } else {
+          updated = [...current, { ...food, count: 1 }];
+        }
+        set({ frequentFoods: updated.sort((a, b) => b.count - a.count) });
       },
       
       supplements: [],
       setSupplements: async (supplements) => {
         set({ supplements });
+      },
+      addSupplement: async (s) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await addDoc(collection(db, 'users', userId, 'supplements'), s);
+        } catch (error) {
+          handleFirestoreError(error, OperationType.CREATE, `users/${userId}/supplements`);
+        }
+      },
+      updateSupplement: async (id, updates) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await setDoc(doc(db, 'users', userId, 'supplements', id.toString()), updates, { merge: true });
+        } catch (error) {
+          handleFirestoreError(error, OperationType.UPDATE, `users/${userId}/supplements/${id}`);
+        }
+      },
+      removeSupplement: async (id) => {
+        const userId = get().userId;
+        if (!userId) return;
+        try {
+          await deleteDoc(doc(db, 'users', userId, 'supplements', id.toString()));
+        } catch (error) {
+          handleFirestoreError(error, OperationType.DELETE, `users/${userId}/supplements/${id}`);
+        }
       },
       toggleSupplementTaken: async (id, date) => {
         const userId = get().userId;
@@ -368,7 +418,7 @@ export const useAppStore = create<AppStore>()(
         const unsubUser = onSnapshot(doc(db, 'users', userId), (doc) => {
           if (doc.exists()) {
             const userData = doc.data() as any;
-            set({ user: userData, waterIntake: userData.water_intake || 0 });
+            set({ user: userData });
             if (userData.competition_date) {
               const protocol = generatePeakingProtocol(userData.competition_date, userData.weight_kg);
               set({ peakingProtocol: protocol });
@@ -376,6 +426,17 @@ export const useAppStore = create<AppStore>()(
           }
         }, (error) => {
           handleFirestoreError(error, OperationType.GET, `users/${userId}`);
+        });
+
+        const today = new Date().toISOString().split('T')[0];
+        const unsubHydration = onSnapshot(doc(db, 'users', userId, 'hydration', today), (doc) => {
+          if (doc.exists()) {
+            set({ waterIntake: doc.data()?.amount || 0 });
+          } else {
+            set({ waterIntake: 0 });
+          }
+        }, (error) => {
+          handleFirestoreError(error, OperationType.GET, `users/${userId}/hydration/${today}`);
         });
 
         const unsubFood = onSnapshot(collection(db, 'users', userId, 'foodLog'), (snapshot) => {
@@ -426,6 +487,7 @@ export const useAppStore = create<AppStore>()(
 
         return () => {
           unsubUser();
+          unsubHydration();
           unsubFood();
           unsubMeasurements();
           unsubSupplements();
@@ -492,6 +554,23 @@ export const useAppStore = create<AppStore>()(
         
         const totals = Object.values(dailyTotals);
         return totals.reduce((a, b) => a + b, 0) / totals.length;
+      },
+      getTodaySupplementIntakeRate: () => {
+        const { supplements } = get();
+        if (supplements.length === 0) return 0;
+        const today = new Date().toISOString().split('T')[0];
+        const takenCount = supplements.filter(s => s.taken_dates.includes(today)).length;
+        return (takenCount / supplements.length) * 100;
+      },
+      getWaterTarget: () => {
+        const { user } = get();
+        if (!user?.weight_kg) return 2000; // Default 2L
+        return Math.round(user.weight_kg * 35);
+      },
+      getTodayWaterIntakeRate: () => {
+        const current = get().waterIntake;
+        const target = get().getWaterTarget();
+        return (current / target) * 100;
       }
     }),
     {

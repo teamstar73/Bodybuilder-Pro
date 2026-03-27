@@ -95,6 +95,12 @@ service cloud.firestore {
              data.calories is number && data.calories >= 0;
     }
 
+    function isValidHydration(data) {
+      return hasRequiredFields(['amount', 'updatedAt']) &&
+             data.amount is number && data.amount >= 0 &&
+             data.updatedAt is string;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -143,6 +149,13 @@ service cloud.firestore {
       match /friends/{friendId} {
         allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
         allow create: if isOwner(userId) || isAdmin();
+        allow delete: if isOwner(userId) || isAdmin();
+      }
+
+      match /hydration/{date} {
+        allow read: if isOwner(userId) || isFriend(userId) || isAdmin();
+        allow create: if isOwner(userId) && isValidHydration(request.resource.data);
+        allow update: if (isOwner(userId) && isValidHydration(request.resource.data)) || isAdmin();
         allow delete: if isOwner(userId) || isAdmin();
       }
     }
