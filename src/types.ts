@@ -90,7 +90,8 @@ export interface Supplement {
   dose_g: number;
   upper_dose_g?: number;
   timing: string;
-  evidence: 'A' | 'B' | 'C';
+  evidence_level: 'A' | 'B' | 'C';
+  category?: string;
   mechanism?: string;
   synergy?: string;
   contraindication?: string;

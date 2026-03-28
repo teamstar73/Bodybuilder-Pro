@@ -18,12 +18,27 @@ async function startServer() {
     if (!query) return res.status(400).json({ error: "Missing query" });
 
     try {
-      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query as string)}&search_simple=1&action=process&json=1&fields=product_name,nutriments,brands&lc=ja&cc=jp`;
+      // Using API v2 for better reliability
+      const url = `https://jp.openfoodfacts.org/api/v2/search?search_terms=${encodeURIComponent(query as string)}&fields=product_name,nutriments,brands&page_size=24`;
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'FitnessApp - Web - Version 1.0 - https://ais-dev-la5zz6jguqcstp4gj3p2sw-234181542968.asia-east1.run.app'
         }
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error(`OFF Search API error (${response.status}):`, text.slice(0, 200));
+        return res.status(response.status).json({ error: "Open Food Facts API returned an error" });
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("OFF Search API returned non-JSON response:", text.slice(0, 200));
+        return res.status(500).json({ error: "Open Food Facts API returned invalid format" });
+      }
+
       const data = await response.json();
       res.json(data);
     } catch (error) {
@@ -44,34 +59,25 @@ async function startServer() {
           'User-Agent': 'FitnessApp - Web - Version 1.0 - https://ais-dev-la5zz6jguqcstp4gj3p2sw-234181542968.asia-east1.run.app'
         }
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error(`OFF Barcode API error (${response.status}):`, text.slice(0, 200));
+        return res.status(response.status).json({ error: "Open Food Facts API returned an error" });
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        console.error("OFF Barcode API returned non-JSON response:", text.slice(0, 200));
+        return res.status(500).json({ error: "Open Food Facts API returned invalid format" });
+      }
+
       const data = await response.json();
       res.json(data);
     } catch (error) {
       console.error('Proxy barcode error:', error);
       res.status(500).json({ error: "Failed to fetch from Open Food Facts" });
-    }
-  });
-
-  // Proxy for Edamam Food Database API
-  app.get("/api/food/edamam", async (req, res) => {
-    const { query } = req.query;
-    if (!query) return res.status(400).json({ error: "Missing query" });
-
-    const appId = process.env.EDAMAM_APP_ID;
-    const appKey = process.env.EDAMAM_APP_KEY;
-
-    if (!appId || !appKey) {
-      return res.status(500).json({ error: "Edamam API credentials not configured" });
-    }
-
-    try {
-      const url = `https://api.edamam.com/api/food-database/v2/parser?ingr=${encodeURIComponent(query as string)}&app_id=${appId}&app_key=${appKey}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error('Edamam proxy error:', error);
-      res.status(500).json({ error: "Failed to fetch from Edamam" });
     }
   });
 

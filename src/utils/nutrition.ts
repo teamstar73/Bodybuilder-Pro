@@ -9,13 +9,13 @@ export function getRecommendedSupplements(phase: UserPhase): string[] {
   switch (phase) {
     case 'bulk':
     case 'lean-bulk':
-      return ['クレアチン', 'βアラニン', '亜鉛', 'マグネシウム', 'ビタミンD3'];
+      return ['クレアチン一水和物', 'βアラニン', '亜鉛', 'マグネシウム（グリシン酸）', 'ビタミンD3', 'プロテイン（WPI）'];
     case 'cut':
-      return ['カフェイン', 'Lカルニチン', 'オメガ3 EPA/DHA', 'ビタミンD3', '亜鉛'];
+      return ['カフェイン', 'Lカルニチン（酒石酸）', 'オメガ3 EPA/DHA', 'ビタミンD3', '亜鉛', 'HMB（βヒドロキシβメチル酪酸）'];
     case 'peak':
-      return ['マグネシウム', 'カリウム', 'ビタミンC', 'オメガ3 EPA/DHA'];
+      return ['カフェイン', 'クレアチン一水和物', 'βアラニン', 'シトルリン', 'BCAA', 'EAA（必須アミノ酸）'];
     case 'maintain':
-      return ['クレアチン', 'オメガ3 EPA/DHA', 'ビタミンD3', 'マグネシウム'];
+      return ['ビタミンD3', '亜鉛', 'マグネシウム（グリシン酸）', 'オメガ3 EPA/DHA', 'ビタミンB群（コンプレックス）'];
     default:
       return [];
   }

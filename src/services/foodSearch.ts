@@ -7,7 +7,7 @@ export interface FoodItem {
   p: number;
   c: number;
   f: number;
-  source: 'preset' | 'openfoodfacts' | 'edamam';
+  source: 'preset' | 'openfoodfacts';
   brand?: string;
   micronutrients?: Micronutrients;
 }
@@ -64,42 +64,9 @@ export async function searchFoods(query: string): Promise<FoodItem[]> {
     }
   };
 
-  // Step 3: Edamam (via proxy)
-  const edamamPromise = async () => {
-    try {
-      const res = await fetch(`/api/food/edamam?query=${encodeURIComponent(query)}`);
-      if (!res.ok) return [];
-      const data = await res.json();
-      return (data.hints || []).map((hint: any) => {
-        const food = hint.food;
-        return {
-          name: food.label,
-          brand: food.brand,
-          cal: Math.round(food.nutrients.ENERC_KCAL || 0),
-          p: Math.round((food.nutrients.PROCNT || 0) * 10) / 10,
-          c: Math.round((food.nutrients.CHOCDF || 0) * 10) / 10,
-          f: Math.round((food.nutrients.FAT || 0) * 10) / 10,
-          source: 'edamam' as const,
-          // Edamam free tier doesn't provide full micros in parser, usually just main ones
-          micronutrients: {
-            magnesium_mg: food.nutrients.MG || 0,
-            zinc_mg: food.nutrients.ZN || 0,
-            iron_mg: food.nutrients.FE || 0,
-            calcium_mg: food.nutrients.CA || 0,
-            potassium_mg: food.nutrients.K || 0,
-            vitamin_c_mg: food.nutrients.VITC || 0,
-          }
-        };
-      });
-    } catch (e) {
-      console.error('Edamam search failed:', e);
-      return [];
-    }
-  };
-
-  // Run API searches in parallel
-  const [offResults, edamamResults] = await Promise.all([offPromise(), edamamPromise()]);
-  results.push(...offResults, ...edamamResults);
+  // Run API searches
+  const offResults = await offPromise();
+  results.push(...offResults);
 
   // Deduplicate by name
   const seen = new Set<string>();

@@ -6,18 +6,21 @@
 import React, { useState, useMemo } from 'react';
 import { colors } from '../constants/theme';
 import { useAppStore } from '../store/useAppStore';
-import { Pill, Plus, ChevronRight, Check, Info, X, AlertCircle, TrendingUp, Zap, Shield, Beaker, Search } from 'lucide-react';
+import { Pill, Plus, ChevronRight, Check, Info, X, AlertCircle, TrendingUp, Zap, Shield, Beaker, Search, Filter } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { Supplement } from '../types';
 import { getRecommendedSupplements } from '../utils/nutrition';
 import { SUPPLEMENT_PRESETS } from '../data/supplements';
+import { searchSupplements } from '../services/supplementSearch';
 
 export default function SupplementsScreen() {
   const { user, supplements, addSupplement, updateSupplement, removeSupplement, toggleSupplementTaken } = useAppStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedSupplement, setSelectedSupplement] = useState<Supplement | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [evidenceFilter, setEvidenceFilter] = useState<string>('');
+  const [phaseFilter, setPhaseFilter] = useState<string>('');
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -31,22 +34,24 @@ export default function SupplementsScreen() {
     return SUPPLEMENT_PRESETS.filter(p => recommendedNames.includes(p.name));
   }, [recommendedNames]);
 
-  // Section 2: Sorted Supplement List
-  const sortedSupplements = useMemo(() => {
-    return [...supplements].sort((a, b) => {
-      const order = { 'A': 0, 'B': 1, 'C': 2 };
-      return order[a.evidence] - order[b.evidence];
-    }).filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  }, [supplements, searchQuery]);
+  // Section 2: Filtered & Sorted Supplement List
+  const filteredSupplements = useMemo(() => {
+    return searchSupplements(
+      searchQuery,
+      { evidence: evidenceFilter || undefined, phase: phaseFilter || undefined },
+      supplements
+    );
+  }, [supplements, searchQuery, evidenceFilter, phaseFilter]);
 
   const [newSupp, setNewSupp] = useState<Partial<Supplement>>({
     name: '',
     dose_g: 0,
     timing: '',
-    evidence: 'A',
+    evidence_level: 'A',
     stock_days_remaining: 30,
     is_active: true,
-    taken_dates: []
+    taken_dates: [],
+    category: 'その他'
   });
 
   const handleAdd = async () => {
@@ -57,10 +62,11 @@ export default function SupplementsScreen() {
       name: '',
       dose_g: 0,
       timing: '',
-      evidence: 'A',
+      evidence_level: 'A',
       stock_days_remaining: 30,
       is_active: true,
-      taken_dates: []
+      taken_dates: [],
+      category: 'その他'
     });
   };
 
@@ -71,6 +77,20 @@ export default function SupplementsScreen() {
       case 'C': return 'bg-surface-alt text-text-faint border border-border';
       default: return 'bg-surface-alt';
     }
+  };
+
+  const HighlightText = ({ text, query }: { text: string, query: string }) => {
+    if (!query.trim()) return <>{text}</>;
+    const parts = text.split(new RegExp(`(${query})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) => 
+          part.toLowerCase() === query.toLowerCase() 
+            ? <span key={i} className="text-accent font-black">{part}</span> 
+            : part
+        )}
+      </>
+    );
   };
 
   return (
@@ -96,7 +116,7 @@ export default function SupplementsScreen() {
               {recommendedStack.map((s, i) => (
                 <div key={i} className="bg-surface-alt border border-border-light px-3 py-1.5 rounded-full flex items-center gap-2">
                   <span className="text-xs font-bold text-white">{s.name}</span>
-                  <div className={cn("w-1.5 h-1.5 rounded-full", evidenceColor(s.evidence))} />
+                  <div className={cn("w-1.5 h-1.5 rounded-full", evidenceColor(s.evidence_level))} />
                 </div>
               ))}
             </div>
@@ -116,78 +136,138 @@ export default function SupplementsScreen() {
         </div>
       </section>
 
-      {/* Section 2: Supplement List */}
+      {/* Section 2: Supplement List & Search */}
       <section className="space-y-4">
-        <div className="flex justify-between items-center px-1">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={16} className="text-accent" />
-            <h2 className="text-[10px] font-bold text-text-muted uppercase tracking-widest">サプリメント一覧</h2>
-          </div>
+        <div className="space-y-4 px-1">
           <div className="relative">
             <input 
               type="text" 
-              placeholder="Search..." 
-              className="bg-surface-alt border border-border rounded-lg py-1 px-8 text-[10px] outline-none focus:border-accent w-32"
+              placeholder="サプリメントを検索 (名前、タイミング、機序...)" 
+              className="w-full bg-surface border border-border rounded-2xl py-4 px-12 text-sm outline-none focus:border-accent transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-faint" />
+            <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-faint" />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-faint hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-2 mr-2">
+              <Filter size={12} className="text-text-faint" />
+              <span className="text-[10px] font-bold text-text-faint uppercase tracking-widest">Filters:</span>
+            </div>
+            {['A', 'B', 'C'].map(level => (
+              <button
+                key={level}
+                onClick={() => setEvidenceFilter(evidenceFilter === level ? '' : level)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-[10px] font-bold transition-all border",
+                  evidenceFilter === level 
+                    ? "bg-accent text-black border-accent" 
+                    : "bg-surface-alt text-text-muted border-border hover:border-border-light"
+                )}
+              >
+                Level {level}
+              </button>
+            ))}
+            <div className="w-px h-4 bg-border mx-1 self-center" />
+            {['bulk', 'cut', 'peak', 'maintain'].map(p => (
+              <button
+                key={p}
+                onClick={() => setPhaseFilter(phaseFilter === p ? '' : p)}
+                className={cn(
+                  "px-3 py-1 rounded-full text-[10px] font-bold transition-all border uppercase",
+                  phaseFilter === p 
+                    ? "bg-white text-black border-white" 
+                    : "bg-surface-alt text-text-muted border-border hover:border-border-light"
+                )}
+              >
+                {p}
+              </button>
+            ))}
           </div>
         </div>
 
         <div className="grid gap-3">
-          {sortedSupplements.map(s => {
-            const isTaken = s.taken_dates.includes(today);
-            const isLowStock = s.stock_days_remaining <= 7;
-            
-            return (
-              <motion.div 
-                key={s.id}
-                layout
-                onClick={() => setSelectedSupplement(s)}
-                className="bg-surface border border-border rounded-2xl p-4 flex items-center justify-between hover:border-border-light transition-all cursor-pointer group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
-                    isTaken ? "bg-accent text-black" : "bg-surface-alt text-text-faint group-hover:text-accent"
-                  )}>
-                    <Pill size={24} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-base font-bold">{s.name}</span>
-                      <span className={cn("text-[8px] font-black px-1.5 py-0.5 rounded", evidenceColor(s.evidence))}>
-                        {s.evidence}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[10px] text-text-muted font-medium">{s.dose_g}g • {s.timing}</span>
-                      <span className={cn(
-                        "text-[10px] font-bold",
-                        isLowStock ? "text-text-faint" : "text-text-muted"
-                      )}>
-                        在庫: {s.stock_days_remaining}日
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSupplementTaken(s.id, today);
-                  }}
-                  className={cn(
-                    "w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all",
-                    isTaken ? "bg-accent border-accent text-black" : "border-border text-text-faint hover:border-accent/50"
-                  )}
+          {filteredSupplements.length > 0 ? (
+            filteredSupplements.map(s => {
+              const isTaken = s.taken_dates.includes(today);
+              const isLowStock = s.stock_days_remaining <= 7;
+              
+              return (
+                <motion.div 
+                  key={s.id}
+                  layout
+                  onClick={() => setSelectedSupplement(s)}
+                  className="bg-surface border border-border rounded-2xl p-4 flex items-center justify-between hover:border-border-light transition-all cursor-pointer group"
                 >
-                  {isTaken ? <Check size={20} /> : <div className="w-2 h-2 rounded-full bg-border" />}
-                </button>
-              </motion.div>
-            );
-          })}
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "w-12 h-12 rounded-xl flex items-center justify-center transition-all",
+                      isTaken ? "bg-accent text-black" : "bg-surface-alt text-text-faint group-hover:text-accent"
+                    )}>
+                      <Pill size={24} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base font-bold">
+                          <HighlightText text={s.name} query={searchQuery} />
+                        </span>
+                        <span className={cn("text-[8px] font-black px-1.5 py-0.5 rounded", evidenceColor(s.evidence_level))}>
+                          {s.evidence_level}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] text-text-muted font-medium">
+                          <HighlightText text={`${s.dose_g}g • ${s.timing}`} query={searchQuery} />
+                        </span>
+                        <span className={cn(
+                          "text-[10px] font-bold",
+                          isLowStock ? "text-accent" : "text-text-muted"
+                        )}>
+                          {isLowStock && <AlertCircle size={10} className="inline mr-1" />}
+                          在庫: {s.stock_days_remaining}日
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleSupplementTaken(s.id, today);
+                    }}
+                    className={cn(
+                      "w-10 h-10 rounded-xl border-2 flex items-center justify-center transition-all",
+                      isTaken ? "bg-accent border-accent text-black" : "border-border text-text-faint hover:border-accent/50"
+                    )}
+                  >
+                    {isTaken ? <Check size={20} /> : <div className="w-2 h-2 rounded-full bg-border" />}
+                  </button>
+                </motion.div>
+              );
+            })
+          ) : (
+            <div className="py-12 text-center space-y-4">
+              <div className="w-16 h-16 bg-surface-alt rounded-full flex items-center justify-center mx-auto text-text-faint">
+                <Search size={32} />
+              </div>
+              <p className="text-text-muted text-sm">一致するサプリメントが見つかりません</p>
+              <button 
+                onClick={() => { setSearchQuery(''); setEvidenceFilter(''); setPhaseFilter(''); }}
+                className="text-accent text-xs font-bold uppercase tracking-widest"
+              >
+                フィルターをリセット
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -224,11 +304,11 @@ export default function SupplementsScreen() {
                   <div>
                     <div className="flex items-center gap-2">
                       <h2 className="text-2xl font-black uppercase tracking-tight">{selectedSupplement.name}</h2>
-                      <span className={cn("text-xs font-black px-2 py-0.5 rounded", evidenceColor(selectedSupplement.evidence))}>
-                        Evidence {selectedSupplement.evidence}
+                      <span className={cn("text-xs font-black px-2 py-0.5 rounded", evidenceColor(selectedSupplement.evidence_level))}>
+                        Evidence {selectedSupplement.evidence_level}
                       </span>
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">Scientific Profile</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{selectedSupplement.category}</p>
                   </div>
                 </div>
                 <button onClick={() => setSelectedSupplement(null)} className="p-2 text-text-muted hover:text-white">
@@ -377,10 +457,10 @@ export default function SupplementsScreen() {
                     {['A', 'B', 'C'].map(level => (
                       <button 
                         key={level}
-                        onClick={() => setNewSupp({ ...newSupp, evidence: level as any })}
+                        onClick={() => setNewSupp({ ...newSupp, evidence_level: level as any })}
                         className={cn(
                           "flex-1 py-3 rounded-xl font-bold transition-all",
-                          newSupp.evidence === level ? "bg-accent text-black" : "bg-surface-alt text-text-muted border border-border"
+                          newSupp.evidence_level === level ? "bg-accent text-black" : "bg-surface-alt text-text-muted border border-border"
                         )}
                       >
                         {level}
